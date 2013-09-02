@@ -141,7 +141,9 @@ public class Human extends Thread {
 
 	private void stillAlive() {
 		if (y >= BackgroundView.height) {
-			humanLife.lifeDec(id);
+			if (humanLife != null) {
+				humanLife.lifeDec(id);
+			}
 			x = 500;
 			y = 200;
 		}

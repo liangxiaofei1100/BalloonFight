@@ -171,6 +171,9 @@ public class BackgroundView extends SurfaceView implements
 
 		Canvas canvas = holder.lockCanvas(new Rect(0, 0, DisplayUtil
 				.getScreenWidth(mContext) / 3, 50));
+		if (canvas == null) {
+			return;
+		}
 		Paint mTextPaint = new Paint();
 		mTextPaint.setAntiAlias(true);
 //		mTextPaint.setFilterBitmap(true);

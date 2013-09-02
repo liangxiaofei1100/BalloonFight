@@ -77,4 +77,10 @@ public class Balloon extends Thread {
 		this.exsit = exsit;
 	}
 
+	@Override
+	public String toString() {
+		return "Balloon [x=" + x + ", y=" + y + ", exsit=" + exsit + "]";
+	}
+
+	
 }
