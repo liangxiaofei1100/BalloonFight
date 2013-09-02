@@ -6,9 +6,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import com.dreamlink.role.Balloon;
 import com.dreamlink.role.Human;
-import com.dreamlink.role.Human.HumanLife;
-import com.dreamlink.util.DisplayUtil;
-
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -17,25 +14,21 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.PixelFormat;
 import android.graphics.Point;
-import android.graphics.PorterDuffXfermode;
-import android.graphics.Rect;
 import android.graphics.PorterDuff.Mode;
-import android.os.DropBoxManager.Entry;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
 
 public class GameView extends SurfaceView implements SurfaceHolder.Callback {
-	private Context mContext;
 	private SurfaceHolder holder;
-	private int width, height;
 	private boolean draw = true;
-	public static boolean gaming = true;
+	private boolean gaming = true;
 	private Human human1, human2;
-	private ConcurrentHashMap<Balloon, Integer> balloons;
+	public static ConcurrentHashMap<Balloon, Integer> balloons;
+	public static List<Human> humans;
+	public static GameView mGameView;
 
 	public GameView(Context context) {
 		super(context);
@@ -49,16 +42,13 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
 	}
 
 	private void init(Context context) {
-		mContext = context;
+		mGameView = this;
 		holder = this.getHolder();
 		holder.addCallback(this);
 		setZOrderOnTop(true);
 		holder.setFormat(PixelFormat.TRANSLUCENT);
 		balloons = new ConcurrentHashMap<Balloon, Integer>();
-		height = DisplayUtil.getScreenHeight(context);
-		width = DisplayUtil.getScreenWidth(context);
-		human1 = new Human(0);
-		human1.registerCallback(BackgroundView.backgroundView);
+		humans = new ArrayList<Human>();
 		setFocusable(true);
 		this.setOnTouchListener(new OnTouchListener() {
 
@@ -68,25 +58,29 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
 				Point point = new Point();
 				point.x = (int) event.getRawX();
 				point.y = (int) event.getRawY();
-				human1.moveTo(point);
+				if (humans.size() == 0) {
+					return false;
+				}
+				if (MainActivity.IsHost && human1 != null)
+					human1.moveTo(point);
 				return false;
 			}
 		});
+
 	}
 
 	@Override
 	public void surfaceChanged(SurfaceHolder holder, int format, int width,
 			int height) {
 		// TODO Auto-generated method stub
-		baThread.start();
-		drawBa.start();
-		human1.start();
+		initGame();
 	}
 
 	@Override
 	public void surfaceCreated(SurfaceHolder holder) {
 		// TODO Auto-generated method stub
-
+		baThread.start();
+		drawBa.start();
 	}
 
 	@Override
@@ -109,12 +103,16 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
 			// TODO Auto-generated method stub
 			super.run();
 			while (draw) {
+				if (!gaming) {
+					continue;
+				}
 				ArrayList<Balloon> temp = new ArrayList<Balloon>();
 				for (java.util.Map.Entry<Balloon, Integer> b : balloons
 						.entrySet()) {
 					if (!b.getKey().isExsit()) {
 						temp.add(b.getKey());
 					}
+
 				}
 				if (temp.size() != 0) {
 					synchronized (balloons) {
@@ -150,17 +148,33 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
 							.getY() - bitmap.getHeight(), paint);
 		}
 		bitmap.recycle();
-		bitmap = BitmapFactory.decodeResource(getResources(),
-				R.drawable.human_define_left);
+		if (humans.size() == 0) {
+			holder.unlockCanvasAndPost(canvas);
+			return;
+		}
 		if (human1 != null) {
+			if (human1.hasBalloon)
+				bitmap = BitmapFactory.decodeResource(getResources(),
+						R.drawable.human_define_left);
+			else
+				bitmap = BitmapFactory.decodeResource(getResources(),
+						R.drawable.human_over);
 			canvas.drawBitmap(bitmap, human1.getX() - bitmap.getWidth() / 2,
 					human1.getY() - bitmap.getHeight() / 2, paint);
+			bitmap.recycle();
 		}
+
 		if (human2 != null) {
-			canvas.drawBitmap(bitmap, human1.getX() - bitmap.getWidth() / 2,
-					human1.getY() - bitmap.getHeight() / 2, paint);
+			if (human2.hasBalloon)
+				bitmap = BitmapFactory.decodeResource(getResources(),
+						R.drawable.human_define_right);
+			else
+				bitmap = BitmapFactory.decodeResource(getResources(),
+						R.drawable.human_over);
+			canvas.drawBitmap(bitmap, human2.getX() - bitmap.getWidth() / 2,
+					human2.getY() - bitmap.getHeight() / 2, paint);
+			bitmap.recycle();
 		}
-		bitmap.recycle();
 		holder.unlockCanvasAndPost(canvas);
 	}
 
@@ -170,7 +184,10 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
 		public void run() {
 			// TODO Auto-generated method stub
 			super.run();
-			while (gaming) {
+			while (draw) {
+				if (!gaming) {
+					continue;
+				}
 				Balloon b1 = new Balloon(BackgroundView.startPoint.get(0).x,
 						BackgroundView.startPoint.get(0).y);
 				Balloon b2 = new Balloon(BackgroundView.startPoint.get(1).x,
@@ -188,7 +205,7 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
 				balloons.put(b3, b3.getX());
 				balloons.put(b4, b4.getX());
 				try {
-					Thread.sleep(2000);
+					Thread.sleep(3000);
 				} catch (InterruptedException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -197,4 +214,54 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
 		}
 	};
 
+	private void setHumanStatus(int status, int id) {
+		switch (id) {
+		case 0:
+			Bitmap bitmap = BitmapFactory.decodeResource(getResources(),
+					R.drawable.ball_final);
+			Bitmap b1 = BitmapFactory.decodeResource(getResources(),
+					R.drawable.human_define_left);
+			humans.get(id).width = (bitmap.getWidth() + b1.getWidth()) / 2;
+			humans.get(id).height = (bitmap.getHeight() + b1.getHeight()) / 2;
+			bitmap.recycle();
+			b1.recycle();
+			break;
+		case 1:
+			bitmap = BitmapFactory.decodeResource(getResources(),
+					R.drawable.ball_final);
+			b1 = BitmapFactory.decodeResource(getResources(),
+					R.drawable.human_define_right);
+			humans.get(id).width = (bitmap.getWidth() + b1.getWidth()) / 2;
+			humans.get(id).height = (bitmap.getHeight() + b1.getHeight()) / 2;
+			bitmap.recycle();
+			b1.recycle();
+		default:
+			break;
+		}
+	}
+
+	public void resetGame() {
+		clearData();
+		initGame();
+	}
+
+	private void initGame() {
+		gaming = true;
+		human1 = new Human(0);
+		human2 = new Human(1);
+		human1.registerCallback(ScoreView.mScoreView);
+		human2.registerCallback(ScoreView.mScoreView);
+		humans.add(human1);
+		humans.add(human2);
+		human1.start();
+		human2.start();
+		setHumanStatus(0, 0);
+		setHumanStatus(0, 1);
+	}
+
+	public void clearData() {
+		gaming = false;
+		humans.clear();
+		balloons.clear();
+	}
 }

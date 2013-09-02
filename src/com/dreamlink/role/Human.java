@@ -1,6 +1,6 @@
 package com.dreamlink.role;
 
-import com.dreamlink.beatballoon.BackgroundView;
+import com.dreamlink.beatballoon.GameView;
 import com.dreamlink.beatballoon.MainActivity;
 
 import android.graphics.Point;
@@ -8,12 +8,14 @@ import android.graphics.Point;
 public class Human extends Thread {
 	private int id;
 	private HumanLife humanLife;
-	private int x, y, lifeNum = 3;
+	private int x, y;
 	private boolean stillAlive = true;
-	private final int upSpeed = 8, downSpeed = 3;
+	private int upSpeed = 6, downSpeed = 8;
 	private int xSpeed = 10;
 	private boolean moving = false;
 	private Point movoToPoint;
+	public int height, width;
+	public boolean hasBalloon = true;
 
 	public void registerCallback(HumanLife humanLife) {
 		this.humanLife = humanLife;
@@ -41,14 +43,6 @@ public class Human extends Thread {
 		this.y = y;
 	}
 
-	public int getLifeNum() {
-		return lifeNum;
-	}
-
-	public void setLifeNum(int lifeNum) {
-		this.lifeNum = lifeNum;
-	}
-
 	public boolean isstillAlive() {
 		return stillAlive;
 	}
@@ -58,13 +52,8 @@ public class Human extends Thread {
 	}
 
 	public Human(int num) {
-		if (num == 0) {
-			x = 500;
-			y = 200;
-		} else {
-			x = 200;
-			y = 200;
-		}
+		id = num;
+		humanLocate();
 	}
 
 	@Override
@@ -82,6 +71,8 @@ public class Human extends Thread {
 			} else {
 				y += downSpeed;
 			}
+			detectBalloons();
+			detectHuman();
 			stillAlive();
 			try {
 				Thread.sleep(MainActivity.refreshSped);
@@ -99,20 +90,37 @@ public class Human extends Thread {
 	}
 
 	private void doMove() {
+		if (!hasBalloon) {
+			y += downSpeed;
+			return;
+		}
 		if (movoToPoint.x != x && movoToPoint.y == y) {
 			xSpeed = 10;
 		} else if (movoToPoint.x == x && movoToPoint.y != y) {
 			xSpeed = 0;
 		} else if (movoToPoint.y > y) {
-			xSpeed = downSpeed * (int) Math.abs(movoToPoint.x - x)
-					/ (movoToPoint.y - y);
-			if (xSpeed == 0)
-				xSpeed = 1;
+			int xDec = Math.abs(movoToPoint.x - x);
+			int yDec = Math.abs(movoToPoint.y - y);
+			if (xDec / yDec > 3) {
+				xSpeed = 10;
+				xSpeed = 10;
+				upSpeed = downSpeed = xSpeed * yDec / xDec;
+			} else {
+				upSpeed = 6;
+				downSpeed = 8;
+				xSpeed = upSpeed * xDec / yDec;
+			}
 		} else {
-			xSpeed = upSpeed * (int) Math.abs(movoToPoint.x - x)
-					/ (movoToPoint.y - y);
-			if (xSpeed == 0)
-				xSpeed = 1;
+			int xDec = Math.abs(movoToPoint.x - x);
+			int yDec = Math.abs(movoToPoint.y - y);
+			if (xDec / yDec > 3) {
+				xSpeed = 10;
+				upSpeed = downSpeed = xSpeed * yDec / xDec;
+			} else {
+				upSpeed = 6;
+				downSpeed = 8;
+				xSpeed = upSpeed * xDec / yDec;
+			}
 		}
 		if (movoToPoint.x - x >= 0) {
 			if (movoToPoint.x - x >= xSpeed)
@@ -140,14 +148,54 @@ public class Human extends Thread {
 	}
 
 	private void stillAlive() {
-		if (y >= BackgroundView.height) {
+		if (y >= MainActivity.mainActivity.height) {
 			humanLife.lifeDec(id);
-			x = 500;
-			y = 200;
+			hasBalloon = true;
+			humanLocate();
 		}
 	}
 
 	public void scoreDetect() {
+		humanLife.scoreAdd(id);
+	}
 
+	private void detectBalloons() {
+		for (java.util.Map.Entry<Balloon, Integer> b : GameView.balloons
+				.entrySet()) {
+			int xDec = Math.abs(x - b.getKey().getX());
+			int yDec = y - b.getKey().getY();
+			if (xDec <= width && yDec <= height && yDec >= 0) {
+				b.getKey().setExsit(false);
+				scoreDetect();
+			}
+		}
+	}
+
+	private void detectHuman() {
+		for (Human human : GameView.humans) {
+			if (human.id == this.id) {
+				continue;
+			} else {
+				int xDec = Math.abs(human.getX() - this.x);
+				int yDec = this.y - human.y;
+				if (xDec <= width / 2 && Math.abs(yDec) <= height / 2) {
+					if (yDec > 0) {
+						human.hasBalloon = false;
+					} else {
+						this.hasBalloon = false;
+					}
+				}
+			}
+		}
+	}
+
+	private void humanLocate() {
+		if (id == 0) {
+			x = 3 * MainActivity.mainActivity.width / 4;
+			y = MainActivity.mainActivity.height / 4;
+		} else {
+			x = MainActivity.mainActivity.width / 4;
+			y = MainActivity.mainActivity.height / 4;
+		}
 	}
 }

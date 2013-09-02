@@ -1,7 +1,6 @@
 package com.dreamlink.role;
 
-import java.util.Random;
-
+import com.dreamlink.beatballoon.GameView;
 import com.dreamlink.beatballoon.MainActivity;
 
 public class Balloon extends Thread {
@@ -10,7 +9,6 @@ public class Balloon extends Thread {
 	private int speed;
 	public boolean exsit = true;
 	final int step = 5;
-	
 
 	public Balloon(int x, int y) {
 		this.x = x;
@@ -30,6 +28,7 @@ public class Balloon extends Thread {
 		// TODO Auto-generated method stub
 		super.run();
 		while (exsit) {
+			detectHuman();
 			y -= speed;
 			if (y < 0) {
 				exsit = false;
@@ -44,6 +43,7 @@ public class Balloon extends Thread {
 					x -= step;
 				}
 			}
+			detectHuman();
 			try {
 				Thread.sleep(MainActivity.refreshSped);
 			} catch (InterruptedException e) {
@@ -77,4 +77,14 @@ public class Balloon extends Thread {
 		this.exsit = exsit;
 	}
 
+	private void detectHuman() {
+		for (Human human : GameView.humans) {
+			int xDec = Math.abs(human.getX() - x);
+			int yDec = human.getY() - y;
+			if (xDec <= human.width && yDec <= human.height
+					&& yDec > human.height / 2) {
+				this.exsit = false;
+			}
+		}
+	}
 }

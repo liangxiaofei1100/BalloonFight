@@ -3,8 +3,6 @@ package com.dreamlink.beatballoon;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.dreamlink.role.Balloon;
-import com.dreamlink.role.Human.HumanLife;
 import com.dreamlink.util.DisplayUtil;
 
 import android.content.Context;
@@ -13,24 +11,18 @@ import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
-import android.graphics.PorterDuff;
-import android.graphics.PorterDuffXfermode;
-import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.PorterDuff.Mode;
 import android.util.AttributeSet;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
-import android.util.AttributeSet;
 
 public class BackgroundView extends SurfaceView implements
-		SurfaceHolder.Callback, HumanLife {
+		SurfaceHolder.Callback {
 	public static List<Point> startPoint;
 	private Context mContext;
 	private SurfaceHolder holder;
-	public static int height, width;
-	private int p1Score, p2Score, p1Life = 3, p2Life = 3;
-	public static BackgroundView backgroundView;
+	private  int height, width;
 
 	public class Point {
 		int x;
@@ -49,9 +41,6 @@ public class BackgroundView extends SurfaceView implements
 	}
 
 	private void init(Context context) {
-		if (backgroundView == null) {
-			backgroundView = this;
-		}
 		mContext = context;
 		holder = this.getHolder();
 		setFocusable(false);
@@ -132,74 +121,6 @@ public class BackgroundView extends SurfaceView implements
 		// TODO Auto-generated method stub
 	}
 
-	@Override
-	public void lifeDec(int id) {
-		// TODO Auto-generated method stub
-		if (id == 0) {
-			p1Life -= 1;
-			;
-		} else {
-			p2Life -= 1;
-		}
-		drawScore(p1Score, p2Score, p1Life, p2Life);
-	}
 
-	@Override
-	public void scoreAdd(int id) {
-		// TODO Auto-generated method stub
-		if (id == 0) {
-			p1Score += 100;
-		} else {
-			p2Score += 100;
-		}
-		drawScore(p1Score, p2Score, p1Life, p2Life);
-	}
-
-	/**
-	 * draw score
-	 * 
-	 * @param p1
-	 *            the person 1 score
-	 * @param p2
-	 *            the person 2 score
-	 * @param p1l
-	 *            person 1 life
-	 * @param p2l
-	 *            person 2 life
-	 * */
-	public void drawScore(int p1, int p2, int p1l, int p2l) {
-
-		Canvas canvas = holder.lockCanvas(new Rect(0, 0, DisplayUtil
-				.getScreenWidth(mContext) / 3, 50));
-		Paint mTextPaint = new Paint();
-		mTextPaint.setAntiAlias(true);
-//		mTextPaint.setFilterBitmap(true);
-		mTextPaint.setXfermode(new PorterDuffXfermode(Mode.CLEAR));
-		canvas.drawPaint(mTextPaint);
-		mTextPaint.setXfermode(new PorterDuffXfermode(Mode.SRC));
-		mTextPaint.setTextSize(20);
-		mTextPaint.setTextAlign(Paint.Align.CENTER);
-		mTextPaint.setColor(Color.GREEN);
-		canvas.drawText("P1:" + p1, DisplayUtil.getScreenWidth(mContext) / 6,
-				25, mTextPaint);
-		holder.unlockCanvasAndPost(canvas);
-		/*--------------------------*/
-		canvas = holder.lockCanvas(new Rect(DisplayUtil
-				.getScreenWidth(mContext) / 3, 0, 2 * DisplayUtil
-				.getScreenWidth(mContext) / 3, 50));
-		mTextPaint.setColor(Color.BLUE);
-		canvas.drawText("P1:" + p1l + "/P2:" + p2l,
-				DisplayUtil.getScreenWidth(mContext) / 2, 25, mTextPaint);
-		holder.unlockCanvasAndPost(canvas);
-		/*--------------------------*/
-		canvas = holder.lockCanvas(new Rect(2 * DisplayUtil
-				.getScreenWidth(mContext) / 3, 0, DisplayUtil
-				.getScreenWidth(mContext), 50));
-		mTextPaint.setColor(Color.RED);
-		canvas.drawText("P2:" + p2,
-				5 * DisplayUtil.getScreenWidth(mContext) / 6, 25, mTextPaint);
-		holder.unlockCanvasAndPost(canvas);
-
-	}
 
 }

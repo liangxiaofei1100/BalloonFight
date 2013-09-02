@@ -9,6 +9,11 @@
         android:layout_width="fill_parent"
         android:layout_height="fill_parent" />
 
+    <com.dreamlink.beatballoon.ScoreView
+        android:id="@+id/overlay3"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent" />
+
     <com.dreamlink.beatballoon.GameView
         android:id="@+id/overlay2"
         android:layout_width="fill_parent"
