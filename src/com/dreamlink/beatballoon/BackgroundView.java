@@ -121,6 +121,4 @@ public class BackgroundView extends SurfaceView implements
 		// TODO Auto-generated method stub
 	}
 
-
-
 }

@@ -23,6 +23,15 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+            <intent-filter>
+                <action android:name="com.dreamlink.communication.action.app" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+
+            <meta-data
+                android:name="APPID"
+                android:value="1002" />
         </activity>
     </application>
 

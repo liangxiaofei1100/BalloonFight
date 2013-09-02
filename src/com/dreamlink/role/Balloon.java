@@ -87,4 +87,10 @@ public class Balloon extends Thread {
 			}
 		}
 	}
+
+	@Override
+	public String toString() {
+		return "Balloon [x=" + x + ", y=" + y + ", exsit=" + exsit + "]";
+	}
+
 }

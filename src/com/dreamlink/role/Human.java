@@ -150,7 +150,9 @@ public class Human extends Thread {
 	private void stillAlive() {
 		if (y >= MainActivity.mainActivity.height) {
 			humanLife.lifeDec(id);
-			hasBalloon = true;
+			if (humanLife != null) {
+				humanLife.lifeDec(id);
+			}
 			humanLocate();
 		}
 	}

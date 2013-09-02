@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.dreamlink.beatballoon.net.BalloonData;
+import com.dreamlink.beatballoon.net.PlayerData;
 import com.dreamlink.role.Balloon;
 import com.dreamlink.role.Human;
 import android.content.Context;
@@ -29,7 +31,11 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
 	public static ConcurrentHashMap<Balloon, Integer> balloons;
 	public static List<Human> humans;
 	public static GameView mGameView;
+	private GameViewCallback mCallback;
 
+	private boolean mIsMaster = false;
+	private boolean mIsPlayerJoined = false;
+	
 	public GameView(Context context) {
 		super(context);
 		// TODO Auto-generated constructor stub
@@ -67,6 +73,12 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
 			}
 		});
 
+	}
+
+	public void startGame(boolean isMaster) {
+		mIsMaster = isMaster;
+		mIsPlayerJoined = true;
+		resetGame();
 	}
 
 	@Override
@@ -121,7 +133,15 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
 						}
 					}
 				}
-				drawRole();
+				// Sync with other players.
+				if (mIsMaster) {
+					if (mCallback != null) {
+						mCallback.onSyncOtherPlayers((Balloon[]) balloons
+								.keySet().toArray(new Balloon[0]),
+								new Human[] { human1 }, getWidth(), getHeight());
+						drawRole();
+					}
+				}
 				try {
 					Thread.sleep(MainActivity.refreshSped);
 				} catch (InterruptedException e) {
@@ -264,4 +284,60 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
 		humans.clear();
 		balloons.clear();
 	}
+	public void setCallback(GameViewCallback callback) {
+		mCallback = callback;
+	}
+
+	/**
+	 * Be careful. These callbacks is not run in UI Thread.
+	 * 
+	 */
+	public interface GameViewCallback {
+
+		/**
+		 * Send message to sync all players.
+		 * 
+		 * @param balloons
+		 * @param players
+		 * @param screenHeight
+		 * @param screenWidth
+		 */
+		void onSyncOtherPlayers(Balloon[] balloons, Human[] players,
+				int screenWidth, int screenHeight);
+
+		/**
+		 * The game is over.
+		 * 
+		 * @param result
+		 */
+		void onGameOver(int result);
+	}
+
+	public void syncGame(ArrayList<BalloonData> balloons2,
+			ArrayList<PlayerData> players) {
+		int width = getWidth();
+		int height = getHeight();
+		balloons.clear();
+		for (BalloonData balloonData : balloons2) {
+			Balloon balloon = new Balloon((int) (balloonData.getX() * width),
+					(int) (balloonData.getY() * height));
+			balloons.put(balloon, balloon.getX());
+		}
+		int playerNumber = players.size();
+		if (playerNumber == 1) {
+			PlayerData playerData = players.get(0);
+			human1 = new Human(0);
+			human1.registerCallback(ScoreView.mScoreView);
+			human1.setX((int) (playerData.getX() * width));
+			human1.setY((int) (playerData.getY() * height));
+		} else if (playerNumber == 2) {
+			PlayerData playerData = players.get(1);
+			human2 = new Human(0);
+			human1.registerCallback(ScoreView.mScoreView);
+			human2.setX((int) (playerData.getX() * width));
+			human2.setY((int) (playerData.getY() * height));
+		}
+		drawRole();
+	}
+
 }
