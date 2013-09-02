@@ -1,7 +1,7 @@
 package com.dreamlink.beatballoon.net;
 
 import com.dreamlink.role.Balloon;
-import com.dreamlink.role.Human;
+import com.dreamlink.role.Player;
 import com.dreamlink.util.ArrayUtil;
 
 public class ProtocolEncoder {
@@ -9,7 +9,7 @@ public class ProtocolEncoder {
 	private static final String TAG = "ProtocolEncoder";
 
 	public static byte[] encodeSyncOtherPlayers(Balloon[] balloons,
-			Human[] players, int screenWidth, int screenHeight) {
+			Player[] players, int screenWidth, int screenHeight) {
 		byte[] typeData = ArrayUtil
 				.int2ByteArray(Protocol.TYPE_SYNC_OTHER_PLAYERS);
 		GameSyncData gameSyncData = new GameSyncData(balloons, players,

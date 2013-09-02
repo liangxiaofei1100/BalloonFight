@@ -5,7 +5,7 @@ import com.dreamlink.beatballoon.MainActivity;
 
 import android.graphics.Point;
 
-public class Human extends Thread {
+public class Player extends Thread {
 	private int id;
 	private HumanLife humanLife;
 	private int x, y;
@@ -51,7 +51,7 @@ public class Human extends Thread {
 		this.stillAlive = alive;
 	}
 
-	public Human(int num) {
+	public Player(int num) {
 		id = num;
 		humanLocate();
 	}
@@ -75,7 +75,7 @@ public class Human extends Thread {
 			detectHuman();
 			stillAlive();
 			try {
-				Thread.sleep(MainActivity.refreshSped);
+				Thread.sleep(MainActivity.refreshSpeed);
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -174,7 +174,7 @@ public class Human extends Thread {
 	}
 
 	private void detectHuman() {
-		for (Human human : GameView.humans) {
+		for (Player human : GameView.humans) {
 			if (human.id == this.id) {
 				continue;
 			} else {

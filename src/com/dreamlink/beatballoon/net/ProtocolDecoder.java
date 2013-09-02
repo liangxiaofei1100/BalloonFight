@@ -1,8 +1,5 @@
 package com.dreamlink.beatballoon.net;
 
-import java.io.ByteArrayInputStream;
-import java.io.DataInputStream;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -100,5 +97,7 @@ public class ProtocolDecoder {
 		void onPlayerJoin(User player);
 
 		void onSearchRequest(User sendUser);
+		
+		void onPlayerTouch(float x, float y);
 	}
 }

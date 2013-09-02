@@ -2,13 +2,12 @@ package com.dreamlink.beatballoon.net;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Arrays;
 
 import com.dreamlink.role.Balloon;
-import com.dreamlink.role.Human;
-import com.dreamlink.util.Log;
+import com.dreamlink.role.Player;
 
 public class GameSyncData implements Serializable {
+	@SuppressWarnings("unused")
 	private static final String TAG = "GameSyncData";
 	/**
 	 * 
@@ -18,7 +17,7 @@ public class GameSyncData implements Serializable {
 	private ArrayList<BalloonData> mBalloonDatas = new ArrayList<BalloonData>();
 	private ArrayList<PlayerData> mPlayerDatas = new ArrayList<PlayerData>();
 
-	public GameSyncData(Balloon[] balloons, Human[] players, int screenWidth,
+	public GameSyncData(Balloon[] balloons, Player[] players, int screenWidth,
 			int screenHeight) {
 		for (Balloon balloon : balloons) {
 			BalloonData balloonData = new BalloonData(balloon.getX()
@@ -27,7 +26,7 @@ public class GameSyncData implements Serializable {
 			mBalloonDatas.add(balloonData);
 		}
 
-		for (Human player : players) {
+		for (Player player : players) {
 			PlayerData playerData = new PlayerData(player.getX()
 					/ (float) screenWidth, player.getY() / (float) screenHeight);
 			mPlayerDatas.add(playerData);

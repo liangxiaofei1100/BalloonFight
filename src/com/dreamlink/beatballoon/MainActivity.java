@@ -20,9 +20,6 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
 import android.os.RemoteException;
-import android.view.Menu;
-import android.view.SurfaceHolder;
-import android.view.SurfaceView;
 import android.widget.Toast;
 
 import com.dreamlink.aidl.Communication;
@@ -34,17 +31,16 @@ import com.dreamlink.beatballoon.net.PlayerData;
 import com.dreamlink.beatballoon.net.ProtocolDecoder;
 import com.dreamlink.beatballoon.net.ProtocolEncoder;
 import com.dreamlink.role.Balloon;
-import com.dreamlink.role.Human;
+import com.dreamlink.role.Player;
 import com.dreamlink.util.Log;
 
-public class MainActivity extends Activity implements SurfaceHolder.Callback,
-		ProtocolDecoder.Callback, GameViewCallback {
+public class MainActivity extends Activity implements ProtocolDecoder.Callback,
+		GameViewCallback {
 	private static final String TAG = "MainActivity";
 	public int height, width;
-	public static final int refreshSped = 30;
+	public static final int refreshSpeed = 30;
 	public static MainActivity mainActivity;
-	public static boolean IsHost;
-	public static final int Life_Number = 3;
+	public static final int LIFE_NUMBER = 3;
 	private Context mContext;
 
 	private ProtocolDecoder mProtocolDecoder;
@@ -60,10 +56,10 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback,
 	/** The player number of the game. */
 	private static final int PLAYER_NUMBER = 2;
 	/**
-	 * This is master or not. Master will do all game calculations, and send the
+	 * This is host or not. Host will do all game calculations, and send the
 	 * result to the other player.
 	 * */
-	private boolean mIsMaster = false;
+	private boolean mIsHost = false;
 
 	private GameView mGameView;
 
@@ -113,7 +109,6 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback,
 		height = DisplayUtil.getScreenHeight(this);
 		width = DisplayUtil.getScreenWidth(this);
 		mainActivity = this;
-		IsHost = true;
 
 		mGameView = (GameView) findViewById(R.id.overlay2);
 		mGameView.setCallback(this);
@@ -143,46 +138,16 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback,
 	private void startGame() {
 		if (mPlayers.size() == PLAYER_NUMBER) {
 			if (mLocalPlayer.getUserID() > mPlayers.get(1).getUserID()) {
-				mIsMaster = true;
+				mIsHost = true;
 			} else {
-				mIsMaster = false;
+				mIsHost = false;
 			}
-			Toast.makeText(
-					mContext,
-					"Start game. This is "
-							+ (mIsMaster ? "master." : "not master."),
-					Toast.LENGTH_SHORT).show();
-			mGameView.startGame(mIsMaster);
+			Log.d(TAG, "startGame() isHost = " + mIsHost);
+			mGameView.startGame(mIsHost);
 		} else {
 			Log.e(TAG, "startGame() error, player count: " + mPlayers.size());
-			mGameView.startGame(false);
+			mGameView.startGame(true);
 		}
-	}
-
-	@Override
-	public boolean onCreateOptionsMenu(Menu menu) {
-		// Inflate the menu; this adds items to the action bar if it is present.
-		getMenuInflater().inflate(R.menu.main, menu);
-		return true;
-	}
-
-	@Override
-	public void surfaceChanged(SurfaceHolder holder, int format, int width,
-			int height) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void surfaceCreated(SurfaceHolder holder) {
-		// TODO Auto-generated method stub
-		// drawBottom(this, holder);
-	}
-
-	@Override
-	public void surfaceDestroyed(SurfaceHolder holder) {
-		// TODO Auto-generated method stub
-
 	}
 
 	private void addPlayer(User player) {
@@ -403,13 +368,18 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback,
 		byte[] data = ProtocolEncoder.encodeJoinGame();
 		sendMessageToSingleCompetitor(data, sendUser);
 	}
-
+	
+	@Override
+	public void onPlayerTouch(float x, float y) {
+		// TODO Auto-generated method stub
+		
+	}
 	// Protocol callback end.
 
 	// GameView callback begin.
 
 	@Override
-	public void onSyncOtherPlayers(Balloon[] balloons, Human[] players,
+	public void onSyncOtherPlayers(Balloon[] balloons, Player[] players,
 			int screenWidth, int screenHeight) {
 		Log.d(TAG,
 				"onSyncOtherPlayers(), balloons: " + Arrays.toString(balloons)

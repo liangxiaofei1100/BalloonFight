@@ -1,7 +1,7 @@
 package com.dreamlink.beatballoon;
 
-import com.dreamlink.role.Human;
-import com.dreamlink.role.Human.HumanLife;
+import com.dreamlink.role.Player;
+import com.dreamlink.role.Player.HumanLife;
 import com.dreamlink.util.DisplayUtil;
 
 import android.content.Context;
@@ -21,18 +21,21 @@ import android.view.View;
 public class ScoreView extends SurfaceView implements SurfaceHolder.Callback,
 		HumanLife {
 	public static ScoreView mScoreView;
-	private int p1Score, p2Score, p1Life = MainActivity.Life_Number,
-			p2Life = MainActivity.Life_Number;
+	private int p1Score;
+	private int p2Score;
+	private int p1Life;
+	private int p2Life;
 	private SurfaceHolder holder;
 	private Context mContext;
 	private boolean over_flag = false;
 	private int width, height;
 	private RectF finishRectF, retryRectF;
 	private boolean localWin = false;
+	private String mGameOverReplay;
+	private String mGameOverQuit;
 
 	public ScoreView(Context context) {
 		super(context);
-		// TODO Auto-generated constructor stub
 		init(context);
 	}
 
@@ -52,6 +55,7 @@ public class ScoreView extends SurfaceView implements SurfaceHolder.Callback,
 		setZOrderOnTop(true);
 		holder.setFormat(PixelFormat.TRANSLUCENT);
 		this.setFocusable(false);
+		
 		finishRectF = new RectF(3 * width / 8, 13 * height / 32, 5 * width / 8,
 				17 * height / 32);
 		retryRectF = new RectF(3 * width / 8, 18 * height / 32, 5 * width / 8,
@@ -60,7 +64,6 @@ public class ScoreView extends SurfaceView implements SurfaceHolder.Callback,
 
 			@Override
 			public boolean onTouch(View v, MotionEvent event) {
-				// TODO Auto-generated method stub
 				int x = (int) event.getRawX();
 				int y = (int) event.getRawY();
 				if (3 * width / 8 < x && x < 5 * width / 8) {
@@ -76,6 +79,12 @@ public class ScoreView extends SurfaceView implements SurfaceHolder.Callback,
 				return false;
 			}
 		});
+		
+		mGameOverReplay = mContext.getString(R.string.game_over_replay);
+		mGameOverQuit = mContext.getString(R.string.game_over_quit);
+		
+		p1Life = MainActivity.LIFE_NUMBER;
+		p2Life = MainActivity.LIFE_NUMBER;
 	}
 
 	@Override
@@ -86,13 +95,11 @@ public class ScoreView extends SurfaceView implements SurfaceHolder.Callback,
 	@Override
 	public void surfaceChanged(SurfaceHolder holder, int format, int width,
 			int height) {
-		// TODO Auto-generated method stub
 
 	}
 
 	@Override
 	public void surfaceCreated(SurfaceHolder holder) {
-		// TODO Auto-generated method stub
 		drawView();
 	}
 
@@ -152,14 +159,13 @@ public class ScoreView extends SurfaceView implements SurfaceHolder.Callback,
 
 	@Override
 	public void lifeDec(int id) {
-		// TODO Auto-generated method stub
 		if (id == 0)
 			p1Life--;
 		else
 			p2Life--;
 		if (p1Life < 0 || p2Life < 0) {
 			over_flag = true;
-			for (Human human : GameView.humans) {
+			for (Player human : GameView.humans) {
 				human.setstillAlive(false);
 			}
 			GameView.mGameView.clearData();
@@ -169,7 +175,6 @@ public class ScoreView extends SurfaceView implements SurfaceHolder.Callback,
 
 	@Override
 	public void scoreAdd(int id) {
-		// TODO Auto-generated method stub
 		if (id == 0)
 			p1Score += 100;
 		else
@@ -194,8 +199,8 @@ public class ScoreView extends SurfaceView implements SurfaceHolder.Callback,
 			canvas.drawText("You   Lose", width / 2, 3 * height / 8, paint);
 		paint.setTextSize(40);
 		paint.setColor(Color.BLACK);
-		canvas.drawText("½á       Êø", width / 2, 16 * height / 32, paint);
-		canvas.drawText("ÖØ       À´", width / 2, 21 * height / 32, paint);
+		canvas.drawText(mGameOverQuit, width / 2, 16 * height / 32, paint);
+		canvas.drawText(mGameOverReplay, width / 2, 21 * height / 32, paint);
 		holder.unlockCanvasAndPost(canvas);
 	}
 

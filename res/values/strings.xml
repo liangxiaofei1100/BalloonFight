@@ -7,5 +7,7 @@
     <string name="player_quit">对方玩家退出游戏</string>
     <string name="waiting_for_player">等待玩家加入···</string>
     <string name="player_join">%1$s 加入游戏，当前玩家数量: %2$d</string>
+    <string name="game_over_replay">重 来</string>
+    <string name="game_over_quit">结 束</string>
 
 </resources>

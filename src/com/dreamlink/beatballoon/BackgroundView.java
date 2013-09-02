@@ -36,7 +36,6 @@ public class BackgroundView extends SurfaceView implements
 
 	public BackgroundView(Context context) {
 		super(context);
-		// TODO Auto-generated constructor stub
 		init(context);
 	}
 
@@ -57,7 +56,6 @@ public class BackgroundView extends SurfaceView implements
 
 	@Override
 	public void draw(Canvas canvas) {
-		// TODO Auto-generated method stub
 		super.draw(canvas);
 	}
 

@@ -45,7 +45,7 @@ public class Balloon extends Thread {
 			}
 			detectHuman();
 			try {
-				Thread.sleep(MainActivity.refreshSped);
+				Thread.sleep(MainActivity.refreshSpeed);
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -78,7 +78,7 @@ public class Balloon extends Thread {
 	}
 
 	private void detectHuman() {
-		for (Human human : GameView.humans) {
+		for (Player human : GameView.humans) {
 			int xDec = Math.abs(human.getX() - x);
 			int yDec = human.getY() - y;
 			if (xDec <= human.width && yDec <= human.height
