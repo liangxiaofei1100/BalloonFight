@@ -2,7 +2,7 @@ package com.dreamlink.util;
 
 public class Log {
 	private static final boolean DEBUG = true;
-	private static final String TAG = "kickball-";
+	private static final String TAG = "balloonfight-";
 
 	public static void d(String tag, String msg) {
 		if (DEBUG) {

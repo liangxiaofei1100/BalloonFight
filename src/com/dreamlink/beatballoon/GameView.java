@@ -65,8 +65,14 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
 				if (humans.size() == 0) {
 					return false;
 				}
-				if (mIsHost && human1 != null)
+				if (mIsHost && human1 != null) {
 					human1.moveTo(point);
+				} else if (!mIsHost) {
+					if (mCallback != null) {
+						mCallback.onInputTouchEvent(event, getWidth(),
+								getHeight());
+					}
+				}
 				return false;
 			}
 		});
@@ -304,6 +310,10 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
 		 * @param result
 		 */
 		void onGameOver(int result);
+
+		void onInputTouchEvent(MotionEvent motionEvent, int screenWidth,
+				int screenHeight);
+
 	}
 
 	public void syncGame(ArrayList<BalloonData> balloons2,
