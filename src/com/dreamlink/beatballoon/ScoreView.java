@@ -13,6 +13,7 @@ import android.graphics.Rect;
 import android.graphics.PorterDuff.Mode;
 import android.graphics.RectF;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -33,6 +34,7 @@ public class ScoreView extends SurfaceView implements SurfaceHolder.Callback,
 	private boolean localWin = false;
 	private String mGameOverReplay;
 	private String mGameOverQuit;
+	private Paint paint;
 
 	public ScoreView(Context context) {
 		super(context);
@@ -45,9 +47,11 @@ public class ScoreView extends SurfaceView implements SurfaceHolder.Callback,
 	}
 
 	private void init(Context context) {
-		if (mScoreView == null)
-			mScoreView = this;
+		mScoreView = this;
 		mContext = context;
+		paint = new Paint();
+		paint.setAntiAlias(true);
+		paint.setTextAlign(Paint.Align.CENTER);
 		width = DisplayUtil.getScreenWidth(mContext);
 		height = DisplayUtil.getScreenHeight(mContext);
 		holder = this.getHolder();
@@ -55,7 +59,7 @@ public class ScoreView extends SurfaceView implements SurfaceHolder.Callback,
 		setZOrderOnTop(true);
 		holder.setFormat(PixelFormat.TRANSLUCENT);
 		this.setFocusable(false);
-		
+
 		finishRectF = new RectF(3 * width / 8, 13 * height / 32, 5 * width / 8,
 				17 * height / 32);
 		retryRectF = new RectF(3 * width / 8, 18 * height / 32, 5 * width / 8,
@@ -79,10 +83,10 @@ public class ScoreView extends SurfaceView implements SurfaceHolder.Callback,
 				return false;
 			}
 		});
-		
+
 		mGameOverReplay = mContext.getString(R.string.game_over_replay);
 		mGameOverQuit = mContext.getString(R.string.game_over_quit);
-		
+
 		p1Life = MainActivity.LIFE_NUMBER;
 		p2Life = MainActivity.LIFE_NUMBER;
 	}
@@ -110,13 +114,19 @@ public class ScoreView extends SurfaceView implements SurfaceHolder.Callback,
 	}
 
 	private void drawView() {
-		Canvas canvas = holder.lockCanvas();
-		canvas.drawColor(Color.TRANSPARENT, Mode.CLEAR);
-		holder.unlockCanvasAndPost(canvas);
-		drawScore(p1Score, p2Score, p1Life, p2Life);
-		if (over_flag)
-			drawOverView();
-
+		try {
+			Canvas canvas = holder.lockCanvas();
+			canvas.drawColor(Color.TRANSPARENT, Mode.CLEAR);
+			drawScore(p1Score, p2Score, p1Life, p2Life, canvas);
+			if (over_flag) {
+				drawFinish(canvas);
+				drawRetry(canvas);
+				drawOverText(canvas, "You Win");
+			}
+			holder.unlockCanvasAndPost(canvas);
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
 	}
 
 	/**
@@ -131,29 +141,17 @@ public class ScoreView extends SurfaceView implements SurfaceHolder.Callback,
 	 * @param p2l
 	 *            person 2 life
 	 * */
-	private void drawScore(int p1, int p2, int p1l, int p2l) {
-
-		Canvas canvas = holder.lockCanvas(new Rect(0, 0, width / 3, 50));
-		canvas.drawColor(Color.TRANSPARENT, Mode.CLEAR);
-		Paint mTextPaint = new Paint();
-		mTextPaint.setAntiAlias(true);
-		mTextPaint.setTextSize(20);
-		mTextPaint.setTextAlign(Paint.Align.CENTER);
-		mTextPaint.setColor(Color.GREEN);
-		canvas.drawText("P1:" + p1, width / 6, 25, mTextPaint);
-		holder.unlockCanvasAndPost(canvas);
+	private void drawScore(int p1, int p2, int p1l, int p2l, Canvas canvas) {
+		paint.setTextSize(height / 16);
+		paint.setColor(Color.GREEN);
+		canvas.drawText("P1:" + p1, width / 6, height / 16, paint);
 		/*--------------------------*/
-		canvas = holder.lockCanvas(new Rect(width / 3, 0, 2 * width / 3, 50));
-		canvas.drawColor(Color.TRANSPARENT, Mode.CLEAR);
-		mTextPaint.setColor(Color.BLUE);
-		canvas.drawText("P1:" + p1l + "/P2:" + p2l, width / 2, 25, mTextPaint);
-		holder.unlockCanvasAndPost(canvas);
+		paint.setColor(Color.BLUE);
+		canvas.drawText("P1:" + p1l + "/P2:" + p2l, width / 2, height / 16,
+				paint);
 		/*--------------------------*/
-		canvas = holder.lockCanvas(new Rect(2 * width / 3, 0, width, 50));
-		canvas.drawColor(Color.TRANSPARENT, Mode.CLEAR);
-		mTextPaint.setColor(Color.RED);
-		canvas.drawText("P2:" + p2, 5 * width / 6, 25, mTextPaint);
-		holder.unlockCanvasAndPost(canvas);
+		paint.setColor(Color.RED);
+		canvas.drawText("P2:" + p2, 5 * width / 6, height / 16, paint);
 
 	}
 
@@ -175,6 +173,7 @@ public class ScoreView extends SurfaceView implements SurfaceHolder.Callback,
 
 	@Override
 	public void scoreAdd(int id) {
+		Log.e("ArbiterLiu", "---------------" + id);
 		if (id == 0)
 			p1Score += 100;
 		else
@@ -182,26 +181,48 @@ public class ScoreView extends SurfaceView implements SurfaceHolder.Callback,
 		drawView();
 	}
 
-	private void drawOverView() {
-		Canvas canvas = holder.lockCanvas(new Rect(width / 8, height / 8,
-				7 * width / 8, 7 * height / 8));
-		canvas.drawColor(Color.TRANSPARENT, Mode.CLEAR);
-		Paint paint = new Paint();
-		paint.setAntiAlias(true);
+	// private void drawOverView() {
+	// Canvas canvas = holder.lockCanvas(new Rect(width / 8, height / 8,
+	// 7 * width / 8, 7 * height / 8));
+	// canvas.drawColor(Color.TRANSPARENT, Mode.CLEAR);
+	// Paint paint = new Paint();
+	// paint.setAntiAlias(true);
+	// paint.setColor(Color.WHITE);
+	// paint.setTextSize(80);
+	// paint.setTextAlign(Paint.Align.CENTER);
+	// canvas.drawRect(finishRectF, paint);
+	// canvas.drawRect(retryRectF, paint);
+	// if (localWin)
+	// canvas.drawText("You   Win ", width / 2, 3 * height / 8, paint);
+	// else
+	// canvas.drawText("You   Lose", width / 2, 3 * height / 8, paint);
+	// paint.setTextSize(40);
+	// paint.setColor(Color.BLACK);
+	// canvas.drawText(mGameOverQuit, width / 2, 16 * height / 32, paint);
+	// canvas.drawText(mGameOverReplay, width / 2, 21 * height / 32, paint);
+	// holder.unlockCanvasAndPost(canvas);
+	// }
+
+	private void drawRetry(Canvas canvas) {
 		paint.setColor(Color.WHITE);
-		paint.setTextSize(80);
-		paint.setTextAlign(Paint.Align.CENTER);
-		canvas.drawRect(finishRectF, paint);
 		canvas.drawRect(retryRectF, paint);
-		if (localWin)
-			canvas.drawText("You   Win ", width / 2, 3 * height / 8, paint);
-		else
-			canvas.drawText("You   Lose", width / 2, 3 * height / 8, paint);
-		paint.setTextSize(40);
 		paint.setColor(Color.BLACK);
-		canvas.drawText(mGameOverQuit, width / 2, 16 * height / 32, paint);
+		paint.setTextSize(height / 16);
 		canvas.drawText(mGameOverReplay, width / 2, 21 * height / 32, paint);
-		holder.unlockCanvasAndPost(canvas);
+	}
+
+	private void drawFinish(Canvas canvas) {
+		paint.setColor(Color.WHITE);
+		canvas.drawRect(finishRectF, paint);
+		paint.setColor(Color.BLACK);
+		paint.setTextSize(height / 16);
+		canvas.drawText(mGameOverQuit, width / 2, 16 * height / 32, paint);
+	}
+
+	private void drawOverText(Canvas canvas, String string) {
+		paint.setColor(Color.WHITE);
+		paint.setTextSize(3 * height / 16);
+		canvas.drawText(string, width / 2, 3 * height / 8, paint);
 	}
 
 	private void reset() {

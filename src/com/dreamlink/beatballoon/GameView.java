@@ -8,6 +8,8 @@ import com.dreamlink.beatballoon.net.BalloonData;
 import com.dreamlink.beatballoon.net.PlayerData;
 import com.dreamlink.role.Balloon;
 import com.dreamlink.role.Player;
+import com.dreamlink.util.DisplayUtil;
+
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -18,6 +20,7 @@ import android.graphics.PixelFormat;
 import android.graphics.Point;
 import android.graphics.PorterDuff.Mode;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -32,6 +35,10 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
 	public static List<Player> humans;
 	public static GameView mGameView;
 	private GameViewCallback mCallback;
+	private Context mContext;
+	private Bitmap ballBitman, p1Bitmap, p2Bitmap;
+	private Paint paint;
+	private Canvas canvas;
 
 	private boolean mIsHost = false;
 	private boolean mIsPlayerJoined = false;
@@ -47,10 +54,18 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
 	}
 
 	private void init(Context context) {
+		mContext = context;
 		mGameView = this;
 		holder = this.getHolder();
 		holder.addCallback(this);
 		setZOrderOnTop(true);
+		ballBitman = BitmapFactory.decodeResource(getResources(),
+				R.drawable.ball_final);
+		p1Bitmap = BitmapFactory.decodeResource(getResources(),
+				R.drawable.human_define_left);
+		p2Bitmap = BitmapFactory.decodeResource(getResources(),
+				R.drawable.human_define_right);
+		paint = new Paint();
 		holder.setFormat(PixelFormat.TRANSLUCENT);
 		balloons = new ConcurrentHashMap<Balloon, Integer>();
 		humans = new ArrayList<Player>();
@@ -118,7 +133,6 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
 					if (!b.getKey().isExsit()) {
 						temp.add(b.getKey());
 					}
-
 				}
 				if (temp.size() != 0) {
 					synchronized (balloons) {
@@ -135,7 +149,16 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
 								new Player[] { human1 }, getWidth(),
 								getHeight());
 					}
-					drawRole();
+					try {
+						canvas = holder.lockCanvas();
+						drawRole(canvas);
+						holder.unlockCanvasAndPost(canvas);
+					} catch (Exception e) {
+						// TODO: handle exception
+						if (canvas != null) {
+							holder.unlockCanvasAndPost(canvas);
+						}
+					}
 				}
 				try {
 					Thread.sleep(MainActivity.refreshSpeed);
@@ -147,49 +170,27 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
 
 	};
 
-	private void drawRole() {
-		if (holder == null) {
-			return;
-		}
-		Canvas canvas = holder.lockCanvas();
-		Bitmap bitmap = BitmapFactory.decodeResource(getResources(),
-				R.drawable.ball_final);
-		Paint paint = new Paint();
+	private void drawRole(Canvas canvas) {
 		canvas.drawColor(Color.TRANSPARENT, Mode.CLEAR);
 		for (java.util.Map.Entry<Balloon, Integer> b : balloons.entrySet()) {
-			canvas.drawBitmap(bitmap,
-					b.getKey().getX() - bitmap.getWidth() / 2, b.getKey()
-							.getY() - bitmap.getHeight(), paint);
+			canvas.drawBitmap(ballBitman,
+					b.getKey().getX() - ballBitman.getWidth() / 2, b.getKey()
+							.getY() - ballBitman.getHeight(), paint);
 		}
-		bitmap.recycle();
 		if (humans.size() == 0) {
-			holder.unlockCanvasAndPost(canvas);
 			return;
 		}
 		if (human1 != null) {
-			if (human1.hasBalloon)
-				bitmap = BitmapFactory.decodeResource(getResources(),
-						R.drawable.human_define_left);
-			else
-				bitmap = BitmapFactory.decodeResource(getResources(),
-						R.drawable.human_over);
-			canvas.drawBitmap(bitmap, human1.getX() - bitmap.getWidth() / 2,
-					human1.getY() - bitmap.getHeight() / 2, paint);
-			bitmap.recycle();
+			canvas.drawBitmap(p1Bitmap,
+					human1.getX() - p1Bitmap.getWidth() / 2, human1.getY()
+							- p1Bitmap.getHeight() / 2, paint);
 		}
 
 		if (human2 != null) {
-			if (human2.hasBalloon)
-				bitmap = BitmapFactory.decodeResource(getResources(),
-						R.drawable.human_define_right);
-			else
-				bitmap = BitmapFactory.decodeResource(getResources(),
-						R.drawable.human_over);
-			canvas.drawBitmap(bitmap, human2.getX() - bitmap.getWidth() / 2,
-					human2.getY() - bitmap.getHeight() / 2, paint);
-			bitmap.recycle();
+			canvas.drawBitmap(p2Bitmap,
+					human2.getX() - p2Bitmap.getWidth() / 2, human2.getY()
+							- p2Bitmap.getHeight() / 2, paint);
 		}
-		holder.unlockCanvasAndPost(canvas);
 	}
 
 	private Thread baThread = new Thread() {
@@ -229,24 +230,14 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
 	private void setHumanStatus(int status, int id) {
 		switch (id) {
 		case 0:
-			Bitmap bitmap = BitmapFactory.decodeResource(getResources(),
-					R.drawable.ball_final);
-			Bitmap b1 = BitmapFactory.decodeResource(getResources(),
-					R.drawable.human_define_left);
-			humans.get(id).width = (bitmap.getWidth() + b1.getWidth()) / 2;
-			humans.get(id).height = (bitmap.getHeight() + b1.getHeight()) / 2;
-			bitmap.recycle();
-			b1.recycle();
+			humans.get(id).width = (ballBitman.getWidth() + p1Bitmap.getWidth()) / 2;
+			humans.get(id).height = (ballBitman.getHeight() + p1Bitmap
+					.getHeight()) / 2;
 			break;
 		case 1:
-			bitmap = BitmapFactory.decodeResource(getResources(),
-					R.drawable.ball_final);
-			b1 = BitmapFactory.decodeResource(getResources(),
-					R.drawable.human_define_right);
-			humans.get(id).width = (bitmap.getWidth() + b1.getWidth()) / 2;
-			humans.get(id).height = (bitmap.getHeight() + b1.getHeight()) / 2;
-			bitmap.recycle();
-			b1.recycle();
+			humans.get(id).width = (ballBitman.getWidth() + p2Bitmap.getWidth()) / 2;
+			humans.get(id).height = (ballBitman.getHeight() + p2Bitmap
+					.getHeight()) / 2;
 		default:
 			break;
 		}
@@ -259,8 +250,8 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
 
 	private void initGame() {
 		gaming = true;
-		human1 = new Player(0);
-		human2 = new Player(1);
+		human1 = new Player(0, getTopHeight(), getBottomHeight());
+		human2 = new Player(1, getTopHeight(), getBottomHeight());
 		human1.registerCallback(ScoreView.mScoreView);
 		human2.registerCallback(ScoreView.mScoreView);
 		humans.add(human1);
@@ -330,7 +321,39 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
 			human2.setX((int) (playerData.getX() * width));
 			human2.setY((int) (playerData.getY() * height));
 		}
-		drawRole();
+		try {
+			canvas = holder.lockCanvas();
+			drawRole(canvas);
+			holder.unlockCanvasAndPost(canvas);
+		} catch (Exception e) {
+			// TODO: handle exception
+			if (canvas != null) {
+				holder.unlockCanvasAndPost(canvas);
+			}
+		}
 	}
 
+	private int getTopHeight() {
+		int height = p1Bitmap.getHeight();
+		return height / 2;
+	}
+
+	private int getBottomHeight() {
+		int height = p1Bitmap.getHeight();
+		Bitmap bitmap = BitmapFactory.decodeResource(getResources(),
+				R.drawable.bo);
+		height = height / 2 + bitmap.getHeight();
+		bitmap.recycle();
+		return DisplayUtil.getScreenHeight(mContext) - height;
+	}
+
+	public void onPlayerTouch(float x, float y) {
+		Point point = new Point();
+		point.x = (int) x;
+		point.y = (int) y;
+		if (mIsHost && human2 != null) {
+			human2.moveTo(point);
+		}
+
+	}
 }

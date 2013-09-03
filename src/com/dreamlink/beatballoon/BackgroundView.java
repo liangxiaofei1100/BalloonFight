@@ -119,4 +119,9 @@ public class BackgroundView extends SurfaceView implements
 		// TODO Auto-generated method stub
 	}
 
+	
+	public int getBottomHeight() {
+		return BitmapFactory.decodeResource(getResources(), R.drawable.bo)
+				.getHeight();
+	}
 }

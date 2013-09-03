@@ -16,6 +16,7 @@ import android.content.ServiceConnection;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
+import android.graphics.BitmapFactory;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
@@ -368,12 +369,13 @@ public class MainActivity extends Activity implements ProtocolDecoder.Callback,
 		byte[] data = ProtocolEncoder.encodeJoinGame();
 		sendMessageToSingleCompetitor(data, sendUser);
 	}
-	
+
 	@Override
 	public void onPlayerTouch(float x, float y) {
 		// TODO Auto-generated method stub
-		
+		mGameView.onPlayerTouch(x, y);
 	}
+
 	// Protocol callback end.
 
 	// GameView callback begin.

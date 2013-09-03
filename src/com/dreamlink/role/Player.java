@@ -16,9 +16,23 @@ public class Player extends Thread {
 	private Point movoToPoint;
 	public int height, width;
 	public boolean hasBalloon = true;
+	private int bottomHeight, topHeight;
 
 	public void registerCallback(HumanLife humanLife) {
 		this.humanLife = humanLife;
+	}
+
+	public Player(int id, int topHeight, int bottomHeight) {
+		// TODO Auto-generated constructor stub
+		this.id = id;
+		this.bottomHeight = bottomHeight;
+		this.topHeight = topHeight;
+		humanLocate();
+	}
+
+	public void lifeDec() {
+		humanLife.lifeDec(id);
+		newLocate();
 	}
 
 	public interface HumanLife {
@@ -148,12 +162,8 @@ public class Player extends Thread {
 	}
 
 	private void stillAlive() {
-		if (y >= MainActivity.mainActivity.height) {
-			humanLife.lifeDec(id);
-			if (humanLife != null) {
-				humanLife.lifeDec(id);
-			}
-			humanLocate();
+		if (y >= bottomHeight) {
+			y = bottomHeight;
 		}
 	}
 
@@ -181,10 +191,10 @@ public class Player extends Thread {
 				int xDec = Math.abs(human.getX() - this.x);
 				int yDec = this.y - human.y;
 				if (xDec <= width / 2 && Math.abs(yDec) <= height / 2) {
-					if (yDec > 0) {
-						human.hasBalloon = false;
+					if (yDec < 0) {
+						human.lifeDec();
 					} else {
-						this.hasBalloon = false;
+						this.lifeDec();
 					}
 				}
 			}
@@ -194,10 +204,16 @@ public class Player extends Thread {
 	private void humanLocate() {
 		if (id == 0) {
 			x = 3 * MainActivity.mainActivity.width / 4;
-			y = MainActivity.mainActivity.height / 4;
+			y = bottomHeight;
 		} else {
 			x = MainActivity.mainActivity.width / 4;
-			y = MainActivity.mainActivity.height / 4;
+			y = bottomHeight;
 		}
+	}
+
+	private void newLocate() {
+		this.x = MainActivity.mainActivity.width / 4;
+		this.y = topHeight;
+
 	}
 }
