@@ -39,6 +39,7 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
 	private Bitmap ballBitman, p1Bitmap, p2Bitmap;
 	private Paint paint;
 	private Canvas canvas;
+	private BalloonThread balloonThread;
 
 	private boolean mIsHost = false;
 	private boolean mIsPlayerJoined = false;
@@ -77,9 +78,6 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
 				Point point = new Point();
 				point.x = (int) event.getRawX();
 				point.y = (int) event.getRawY();
-				if (humans.size() == 0) {
-					return false;
-				}
 				if (mIsHost && human1 != null) {
 					human1.moveTo(point);
 				} else if (!mIsHost) {
@@ -108,7 +106,6 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
 
 	@Override
 	public void surfaceCreated(SurfaceHolder holder) {
-		baThread.start();
 		drawBa.start();
 	}
 
@@ -186,9 +183,6 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
 					b.getKey().getX() - ballBitman.getWidth() / 2, b.getKey()
 							.getY() - ballBitman.getHeight(), paint);
 		}
-		if (humans.size() == 0) {
-			return;
-		}
 		if (human1 != null) {
 			canvas.drawBitmap(p1Bitmap,
 					human1.getX() - p1Bitmap.getWidth() / 2, human1.getY()
@@ -202,15 +196,13 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
 		}
 	}
 
-	private Thread baThread = new Thread() {
+	private class BalloonThread extends Thread {
+		public boolean flag = true;
 
 		@Override
 		public void run() {
 			super.run();
-			while (draw) {
-				if (!gaming) {
-					continue;
-				}
+			while (flag) {
 				Balloon b1 = new Balloon(BackgroundView.startPoint.get(0).x,
 						BackgroundView.startPoint.get(0).y);
 				Balloon b2 = new Balloon(BackgroundView.startPoint.get(1).x,
@@ -227,6 +219,9 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
 				balloons.put(b2, b2.getX());
 				balloons.put(b3, b3.getX());
 				balloons.put(b4, b4.getX());
+				if (!flag) {
+					break;
+				}
 				try {
 					Thread.sleep(3000);
 				} catch (InterruptedException e) {
@@ -234,7 +229,7 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
 				}
 			}
 		}
-	};
+	}
 
 	private void setHumanStatus(int status, int id) {
 		switch (id) {
@@ -261,20 +256,29 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
 		gaming = true;
 		human1 = new Player(0, getTopHeight(), getBottomHeight());
 		human2 = new Player(1, getTopHeight(), getBottomHeight());
-		human1.registerCallback(ScoreView.mScoreView);
-		human2.registerCallback(ScoreView.mScoreView);
-		humans.add(human1);
-		humans.add(human2);
-		human1.start();
-		human2.start();
-		setHumanStatus(0, 0);
-		setHumanStatus(0, 1);
+		if (mIsHost) {
+			human1.registerCallback(ScoreView.mScoreView);
+			human2.registerCallback(ScoreView.mScoreView);
+			humans.add(human1);
+			humans.add(human2);
+			human1.start();
+			human2.start();
+			balloonThread = new BalloonThread();
+			balloonThread.start();
+			setHumanStatus(0, 0);
+			setHumanStatus(0, 1);
+		}
 	}
 
 	public void clearData() {
 		gaming = false;
-		human1.setstillAlive(false);
-		human2.setstillAlive(false);
+		if (balloonThread != null) {
+			balloonThread.flag = false;
+		}
+		if (human1 != null)
+			human1.setstillAlive(false);
+		if (human2 != null)
+			human2.setstillAlive(false);
 	}
 
 	public void setCallback(GameViewCallback callback) {
@@ -317,18 +321,15 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
 		if (playerNumber == 1) {
 			PlayerData playerData = players.get(0);
 			human1 = new Player(0);
-			human1.registerCallback(ScoreView.mScoreView);
 			human1.setX((int) (playerData.getX() * width));
 			human1.setY((int) (playerData.getY() * height));
 		} else if (playerNumber == 2) {
 			PlayerData playerData = players.get(0);
 			human1 = new Player(0);
-			human1.registerCallback(ScoreView.mScoreView);
 			human1.setX((int) (playerData.getX() * width));
 			human1.setY((int) (playerData.getY() * height));
 			playerData = players.get(1);
 			human2 = new Player(1);
-			human2.registerCallback(ScoreView.mScoreView);
 			human2.setX((int) (playerData.getX() * width));
 			human2.setY((int) (playerData.getY() * height));
 		}
