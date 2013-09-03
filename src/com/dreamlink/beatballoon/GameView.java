@@ -80,8 +80,14 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
 				if (humans.size() == 0) {
 					return false;
 				}
-				if (mIsHost && human1 != null)
+				if (mIsHost && human1 != null) {
 					human1.moveTo(point);
+				} else if (!mIsHost) {
+					if (mCallback != null) {
+						mCallback.onInputTouchEvent(event, getWidth(),
+								getHeight());
+					}
+				}
 				return false;
 			}
 		});
@@ -116,6 +122,9 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
 		if (human2 != null) {
 			human2.setstillAlive(false);
 		}
+		ballBitman.recycle();
+		p1Bitmap.recycle();
+		p2Bitmap.recycle();
 	}
 
 	private Thread drawBa = new Thread() {
@@ -146,7 +155,7 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
 					if (mCallback != null && mIsPlayerJoined) {
 						mCallback.onSyncOtherPlayers((Balloon[]) balloons
 								.keySet().toArray(new Balloon[0]),
-								new Player[] { human1 }, getWidth(),
+								new Player[] { human1, human2 }, getWidth(),
 								getHeight());
 					}
 					try {
@@ -230,14 +239,12 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
 	private void setHumanStatus(int status, int id) {
 		switch (id) {
 		case 0:
-			humans.get(id).width = (ballBitman.getWidth() + p1Bitmap.getWidth()) / 2;
-			humans.get(id).height = (ballBitman.getHeight() + p1Bitmap
-					.getHeight()) / 2;
+			human1.width = (ballBitman.getWidth() + p1Bitmap.getWidth()) / 2;
+			human1.height = (ballBitman.getHeight() + p1Bitmap.getHeight()) / 2;
 			break;
 		case 1:
-			humans.get(id).width = (ballBitman.getWidth() + p2Bitmap.getWidth()) / 2;
-			humans.get(id).height = (ballBitman.getHeight() + p2Bitmap
-					.getHeight()) / 2;
+			human2.width = (ballBitman.getWidth() + p2Bitmap.getWidth()) / 2;
+			human2.height = (ballBitman.getHeight() + p2Bitmap.getHeight()) / 2;
 		default:
 			break;
 		}
@@ -249,6 +256,8 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
 	}
 
 	private void initGame() {
+		humans.clear();
+		balloons.clear();
 		gaming = true;
 		human1 = new Player(0, getTopHeight(), getBottomHeight());
 		human2 = new Player(1, getTopHeight(), getBottomHeight());
@@ -264,8 +273,8 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
 
 	public void clearData() {
 		gaming = false;
-		humans.clear();
-		balloons.clear();
+		human1.setstillAlive(false);
+		human2.setstillAlive(false);
 	}
 
 	public void setCallback(GameViewCallback callback) {
@@ -295,6 +304,10 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
 		 * @param result
 		 */
 		void onGameOver(int result);
+
+		void onInputTouchEvent(MotionEvent motionEvent, int screenWidth,
+				int screenHeight);
+
 	}
 
 	public void syncGame(ArrayList<BalloonData> balloons2,
@@ -315,9 +328,14 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
 			human1.setX((int) (playerData.getX() * width));
 			human1.setY((int) (playerData.getY() * height));
 		} else if (playerNumber == 2) {
-			PlayerData playerData = players.get(1);
-			human2 = new Player(0);
+			PlayerData playerData = players.get(0);
+			human1 = new Player(0);
 			human1.registerCallback(ScoreView.mScoreView);
+			human1.setX((int) (playerData.getX() * width));
+			human1.setY((int) (playerData.getY() * height));
+			playerData = players.get(1);
+			human2 = new Player(1);
+			human2.registerCallback(ScoreView.mScoreView);
 			human2.setX((int) (playerData.getX() * width));
 			human2.setY((int) (playerData.getY() * height));
 		}
@@ -349,8 +367,8 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
 
 	public void onPlayerTouch(float x, float y) {
 		Point point = new Point();
-		point.x = (int) x;
-		point.y = (int) y;
+		point.x = (int) (x * DisplayUtil.getScreenWidth(mContext));
+		point.y = (int) (y * DisplayUtil.getScreenHeight(mContext));
 		if (mIsHost && human2 != null) {
 			human2.moveTo(point);
 		}

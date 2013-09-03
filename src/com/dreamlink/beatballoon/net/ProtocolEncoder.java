@@ -1,5 +1,7 @@
 package com.dreamlink.beatballoon.net;
 
+import java.io.Serializable;
+
 import com.dreamlink.role.Balloon;
 import com.dreamlink.role.Player;
 import com.dreamlink.util.ArrayUtil;
@@ -10,12 +12,16 @@ public class ProtocolEncoder {
 
 	public static byte[] encodeSyncOtherPlayers(Balloon[] balloons,
 			Player[] players, int screenWidth, int screenHeight) {
-		byte[] typeData = ArrayUtil
-				.int2ByteArray(Protocol.TYPE_SYNC_OTHER_PLAYERS);
 		GameSyncData gameSyncData = new GameSyncData(balloons, players,
 				screenWidth, screenHeight);
-		byte[] syncData = ArrayUtil.objectToByteArray(gameSyncData);
-		return ArrayUtil.join(typeData, syncData);
+		return encode(Protocol.TYPE_SYNC_OTHER_PLAYERS, gameSyncData);
+	}
+
+	public static byte[] encodeInputTouchEvent(float x, float y,
+			int screenWidth, int screenHeight) {
+		TouchEventData touchEventData = new TouchEventData(x / screenWidth, y
+				/ screenHeight);
+		return encode(Protocol.TYPE_INPUT_TOUCH_EVENT, touchEventData);
 	}
 
 	public static byte[] encodeQuitGame() {
@@ -32,5 +38,11 @@ public class ProtocolEncoder {
 
 	public static byte[] encodeSearchOtherPlayers() {
 		return ArrayUtil.int2ByteArray(Protocol.TYPE_SEARCH_OTHER_PLAYERS);
+	}
+
+	private static byte[] encode(int type, Serializable data) {
+		byte[] typteData = ArrayUtil.int2ByteArray(type);
+		byte[] dataData = ArrayUtil.objectToByteArray(data);
+		return ArrayUtil.join(typteData, dataData);
 	}
 }

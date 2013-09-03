@@ -13,8 +13,10 @@ public class Protocol {
 	public static final int TYPE_LENGTH = 4;
 
 	// Protocols about game rules.
-	/** Master send message to sync all players. */
+	/** Host send message to clients to sync all players. */
 	public static final int TYPE_SYNC_OTHER_PLAYERS = 100;
+	/** Client send message to Host to input touch event. */
+	public static final int TYPE_INPUT_TOUCH_EVENT = 101;
 	/** The other player quit the game. */
 	public static final int TYPE_THE_PLAYER_QUIT = 102;
 	/** Game is over and the other player want replay the game. */

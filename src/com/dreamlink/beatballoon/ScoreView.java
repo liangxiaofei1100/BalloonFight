@@ -173,7 +173,6 @@ public class ScoreView extends SurfaceView implements SurfaceHolder.Callback,
 
 	@Override
 	public void scoreAdd(int id) {
-		Log.e("ArbiterLiu", "---------------" + id);
 		if (id == 0)
 			p1Score += 100;
 		else

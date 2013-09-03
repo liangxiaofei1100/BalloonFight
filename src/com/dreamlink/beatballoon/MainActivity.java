@@ -21,6 +21,7 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
 import android.os.RemoteException;
+import android.view.MotionEvent;
 import android.widget.Toast;
 
 import com.dreamlink.aidl.Communication;
@@ -372,7 +373,7 @@ public class MainActivity extends Activity implements ProtocolDecoder.Callback,
 
 	@Override
 	public void onPlayerTouch(float x, float y) {
-		// TODO Auto-generated method stub
+		Log.d(TAG, "onPlayerTouch x = " + x + ", y = " + y);
 		mGameView.onPlayerTouch(x, y);
 	}
 
@@ -398,5 +399,14 @@ public class MainActivity extends Activity implements ProtocolDecoder.Callback,
 
 	}
 
+	@Override
+	public void onInputTouchEvent(MotionEvent motionEvent, int screenWidth,
+			int screenHeight) {
+		Log.d(TAG, "onInputTouchEvent: x = " + motionEvent.getX() + ", y = "
+				+ motionEvent.getY());
+		byte[] data = ProtocolEncoder.encodeInputTouchEvent(motionEvent.getX(),
+				motionEvent.getY(), screenWidth, screenHeight);
+		sendMessageToAllCompetitor(data);
+	}
 	// GameView callback end.
 }

@@ -5,8 +5,7 @@ import java.util.Arrays;
 
 import com.dreamlink.aidl.User;
 import com.dreamlink.util.ArrayUtil;
-
-import android.util.Log;
+import com.dreamlink.util.Log;
 
 public class ProtocolDecoder {
 	private static final String TAG = "ProtocolDecoder";
@@ -27,8 +26,12 @@ public class ProtocolDecoder {
 
 		switch (msgType) {
 		case Protocol.TYPE_SYNC_OTHER_PLAYERS:
-			Log.d(TAG, "TYPE_BALL_COME");
+			Log.d(TAG, "TYPE_SYNC_OTHER_PLAYERS");
 			handleMessageSyncOtherPlayers(data);
+			break;
+		case Protocol.TYPE_INPUT_TOUCH_EVENT:
+			Log.d(TAG, "TYPE_INPUT_TOUCH_EVENT");
+			handleMessageInputTouchEvent(data, sendUser);
 			break;
 		case Protocol.TYPE_THE_PLAYER_QUIT:
 			Log.d(TAG, "TYPE_THE_PLAYER_QUIT");
@@ -50,6 +53,16 @@ public class ProtocolDecoder {
 			break;
 		}
 
+	}
+
+	private void handleMessageInputTouchEvent(byte[] data, User sendUser) {
+		TouchEventData touchEventData = (TouchEventData) ArrayUtil
+				.byteArrayToObject(data);
+
+		if (mCallback != null) {
+			mCallback.onPlayerTouch(touchEventData.getX(),
+					touchEventData.getY());
+		}
 	}
 
 	private void handMessageSearchPlayers(byte[] data, User sendUser) {
@@ -97,7 +110,7 @@ public class ProtocolDecoder {
 		void onPlayerJoin(User player);
 
 		void onSearchRequest(User sendUser);
-		
+
 		void onPlayerTouch(float x, float y);
 	}
 }
