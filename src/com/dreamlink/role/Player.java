@@ -83,6 +83,7 @@ public class Player extends Thread {
 					y += downSpeed;
 				}
 			} else {
+				downSpeed=8;
 				y += downSpeed;
 			}
 			detectBalloons();
@@ -175,7 +176,7 @@ public class Player extends Thread {
 		for (java.util.Map.Entry<Balloon, Integer> b : GameView.balloons
 				.entrySet()) {
 			int xDec = Math.abs(x - b.getKey().getX());
-			int yDec = y - b.getKey().getY();
+			int yDec = b.getKey().getY()-y;
 			if (xDec <= width && yDec <= height && yDec >= 0) {
 				b.getKey().setExsit(false);
 				scoreDetect();

@@ -1,5 +1,7 @@
 package com.dreamlink.role;
 
+import android.util.Log;
+
 import com.dreamlink.beatballoon.GameView;
 import com.dreamlink.beatballoon.MainActivity;
 
@@ -80,9 +82,10 @@ public class Balloon extends Thread {
 	private void detectHuman() {
 		for (Player human : GameView.humans) {
 			int xDec = Math.abs(human.getX() - x);
-			int yDec = human.getY() - y;
+			int yDec = y - human.getY();
 			if (xDec <= human.width && yDec <= human.height
 					&& yDec > human.height / 2) {
+				Log.d("ArbiterLiu", "" + yDec);
 				this.exsit = false;
 			}
 		}

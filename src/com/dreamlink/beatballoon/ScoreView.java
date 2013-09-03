@@ -68,16 +68,17 @@ public class ScoreView extends SurfaceView implements SurfaceHolder.Callback,
 
 			@Override
 			public boolean onTouch(View v, MotionEvent event) {
-				int x = (int) event.getRawX();
-				int y = (int) event.getRawY();
-				if (3 * width / 8 < x && x < 5 * width / 8) {
-					if (13 * height / 32 < y && y < 17 * height / 32) {
-						MainActivity.mainActivity.finish();
-					} else if (18 * height / 32 < y && y < 22 * height / 32) {
-						GameView.mGameView.resetGame();
-						reset();
-						over_flag = false;
-						drawView();
+				if (over_flag) {
+					int x = (int) event.getRawX();
+					int y = (int) event.getRawY();
+					if (3 * width / 8 < x && x < 5 * width / 8) {
+						if (13 * height / 32 < y && y < 17 * height / 32) {
+							MainActivity.mainActivity.finish();
+						} else if (18 * height / 32 < y && y < 22 * height / 32) {
+							GameView.mGameView.resetGame();
+							reset();
+							drawView();
+						}
 					}
 				}
 				return false;
@@ -227,5 +228,6 @@ public class ScoreView extends SurfaceView implements SurfaceHolder.Callback,
 	private void reset() {
 		p1Score = p2Score = 0;
 		p1Life = p2Life = 3;
+		over_flag = false;
 	}
 }
