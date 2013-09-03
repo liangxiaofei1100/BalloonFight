@@ -5,17 +5,17 @@
     tools:context=".MainActivity" >
 
     <com.dreamlink.beatballoon.BackgroundView
-        android:id="@+id/overlay1"
+        android:id="@+id/backgroundView"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent" />
 
     <com.dreamlink.beatballoon.ScoreView
-        android:id="@+id/overlay3"
+        android:id="@+id/scoreView"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent" />
 
     <com.dreamlink.beatballoon.GameView
-        android:id="@+id/overlay2"
+        android:id="@+id/gameView"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent" />
 

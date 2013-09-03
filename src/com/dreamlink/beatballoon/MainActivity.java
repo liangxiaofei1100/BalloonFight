@@ -28,6 +28,8 @@ import com.dreamlink.aidl.Communication;
 import com.dreamlink.aidl.OnCommunicationListenerExternal;
 import com.dreamlink.aidl.User;
 import com.dreamlink.beatballoon.GameView.GameViewCallback;
+import com.dreamlink.beatballoon.ScoreView.OnGameOverListener;
+import com.dreamlink.beatballoon.ScoreView.OnSoreChangedListener;
 import com.dreamlink.beatballoon.net.BalloonData;
 import com.dreamlink.beatballoon.net.PlayerData;
 import com.dreamlink.beatballoon.net.ProtocolDecoder;
@@ -37,7 +39,7 @@ import com.dreamlink.role.Player;
 import com.dreamlink.util.Log;
 
 public class MainActivity extends Activity implements ProtocolDecoder.Callback,
-		GameViewCallback {
+		GameViewCallback, OnSoreChangedListener, OnGameOverListener {
 	private static final String TAG = "MainActivity";
 	public int height, width;
 	public static final int refreshSpeed = 30;
@@ -47,10 +49,9 @@ public class MainActivity extends Activity implements ProtocolDecoder.Callback,
 
 	private ProtocolDecoder mProtocolDecoder;
 
-	private static final int MSG_GAMEOVER = 1;
-	private static final int MSG_COMPETITOR_QUIT = 2;
-	private static final int MSG_COMPETITOR_REPLAY = 3;
-	private static final int MSG_COMPETITOR_JOIN = 4;
+	private static final int MSG_COMPETITOR_QUIT = 1;
+	private static final int MSG_COMPETITOR_REPLAY = 2;
+	private static final int MSG_COMPETITOR_JOIN = 3;
 
 	private User mLocalPlayer;
 	private Vector<User> mPlayers = new Vector<User>();
@@ -65,14 +66,12 @@ public class MainActivity extends Activity implements ProtocolDecoder.Callback,
 
 	private GameView mGameView;
 
+	private ScoreView mScoreView;
+
 	private Handler mHandler = new Handler() {
 		@Override
 		public void handleMessage(android.os.Message msg) {
 			switch (msg.what) {
-			case MSG_GAMEOVER:
-				// mGameOverView.setGameOverResult(msg.arg1);
-				// mGameOverView.setVisibility(View.VISIBLE);
-				break;
 
 			case MSG_COMPETITOR_QUIT:
 				Toast.makeText(mContext, R.string.player_quit,
@@ -81,8 +80,8 @@ public class MainActivity extends Activity implements ProtocolDecoder.Callback,
 				break;
 
 			case MSG_COMPETITOR_REPLAY:
-				// mGameOverView.setVisibility(View.GONE);
-				// startGame();
+				mGameView.resetGame();
+				mScoreView.reset();
 				break;
 
 			case MSG_COMPETITOR_JOIN:
@@ -112,8 +111,12 @@ public class MainActivity extends Activity implements ProtocolDecoder.Callback,
 		width = DisplayUtil.getScreenWidth(this);
 		mainActivity = this;
 
-		mGameView = (GameView) findViewById(R.id.overlay2);
+		mGameView = (GameView) findViewById(R.id.gameView);
 		mGameView.setCallback(this);
+
+		mScoreView = (ScoreView) findViewById(R.id.scoreView);
+		mScoreView.setOnSoreChangedListener(this);
+		mScoreView.setOnGameOverListener(this);
 
 		mProtocolDecoder = new ProtocolDecoder(this);
 
@@ -355,8 +358,9 @@ public class MainActivity extends Activity implements ProtocolDecoder.Callback,
 
 	@Override
 	public void onPlayerReplay() {
-		// TODO Auto-generated method stub
-
+		Message message = mHandler.obtainMessage();
+		message.what = MSG_COMPETITOR_REPLAY;
+		mHandler.sendMessage(message);
 	}
 
 	@Override
@@ -377,6 +381,20 @@ public class MainActivity extends Activity implements ProtocolDecoder.Callback,
 		mGameView.onPlayerTouch(x, y);
 	}
 
+	@Override
+	public void onSyncLife(int lifeOfPlayer1, int lifeOfPlayer2) {
+		Log.d(TAG, "onSyncLife lifeOfPlayer1 = " + lifeOfPlayer1
+				+ ", lifeOfPlayer2 = " + lifeOfPlayer2);
+		mScoreView.setLife(lifeOfPlayer1, lifeOfPlayer2);
+	}
+
+	@Override
+	public void onSyncSore(int scoreOfPlayer1, int scoreOfPlayer2) {
+		Log.d(TAG, "onSyncSore scoreOfPlayer1 = " + scoreOfPlayer1
+				+ ", scoreOfPlayer2 = " + scoreOfPlayer2);
+		mScoreView.setScore(scoreOfPlayer1, scoreOfPlayer2);
+	}
+
 	// Protocol callback end.
 
 	// GameView callback begin.
@@ -394,12 +412,6 @@ public class MainActivity extends Activity implements ProtocolDecoder.Callback,
 	}
 
 	@Override
-	public void onGameOver(int result) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
 	public void onInputTouchEvent(MotionEvent motionEvent, int screenWidth,
 			int screenHeight) {
 		Log.d(TAG, "onInputTouchEvent: x = " + motionEvent.getX() + ", y = "
@@ -408,5 +420,42 @@ public class MainActivity extends Activity implements ProtocolDecoder.Callback,
 				motionEvent.getY(), screenWidth, screenHeight);
 		sendMessageToAllCompetitor(data);
 	}
+
 	// GameView callback end.
+
+	// Score view callback begin
+	@Override
+	public void onLifeChanged(int lifeOfPlayer1, int lifeOfPlayer2) {
+		Log.d(TAG, "onLifeChanged lifeOfPlayer1 = " + lifeOfPlayer1
+				+ ", lifeOfPlayer2 = " + lifeOfPlayer2);
+		byte[] data = ProtocolEncoder.encodeSyncLife(lifeOfPlayer1,
+				lifeOfPlayer2);
+		sendMessageToAllCompetitor(data);
+	}
+
+	@Override
+	public void onScoreChanged(int scoreOfPlayer1, int scoreOfPlayer2) {
+		Log.d(TAG, "onScoreChanged scoreOfPlayer1 = " + scoreOfPlayer1
+				+ ", scoreOfPlayer2 = " + scoreOfPlayer2);
+		byte[] data = ProtocolEncoder.encodeSyncScore(scoreOfPlayer1,
+				scoreOfPlayer2);
+		sendMessageToAllCompetitor(data);
+	}
+
+	@Override
+	public void onGameOverQuit() {
+		Log.d(TAG, "onGameOverQuit");
+		byte[] data = ProtocolEncoder.encodeQuitGame();
+		sendMessageToAllCompetitor(data);
+		finish();
+	}
+
+	@Override
+	public void onGameOverPlayAgain() {
+		Log.d(TAG, "onGameOverPlayAgain");
+		byte[] data = ProtocolEncoder.encodeReplayGame();
+		sendMessageToAllCompetitor(data);
+		mGameView.resetGame();
+	}
+	// Score view callback end
 }

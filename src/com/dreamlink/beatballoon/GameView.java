@@ -298,13 +298,6 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
 		void onSyncOtherPlayers(Balloon[] balloons, Player[] players,
 				int screenWidth, int screenHeight);
 
-		/**
-		 * The game is over.
-		 * 
-		 * @param result
-		 */
-		void onGameOver(int result);
-
 		void onInputTouchEvent(MotionEvent motionEvent, int screenWidth,
 				int screenHeight);
 

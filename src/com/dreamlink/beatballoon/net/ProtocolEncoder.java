@@ -10,6 +10,16 @@ public class ProtocolEncoder {
 	@SuppressWarnings("unused")
 	private static final String TAG = "ProtocolEncoder";
 
+	public static byte[] encodeSyncLife(int lifeOfPlayer1, int lifeOfPlayer2) {
+		LifeData lifeData = new LifeData(lifeOfPlayer1, lifeOfPlayer2);
+		return encode(Protocol.TYPE_SYNC_LIFE, lifeData);
+	}
+
+	public static byte[] encodeSyncScore(int scoreOfPlayer1, int scoreOfPlayer2) {
+		ScoreData scoreData = new ScoreData(scoreOfPlayer1, scoreOfPlayer2);
+		return encode(Protocol.TYPE_SYNC_SCORE, scoreData);
+	}
+
 	public static byte[] encodeSyncOtherPlayers(Balloon[] balloons,
 			Player[] players, int screenWidth, int screenHeight) {
 		GameSyncData gameSyncData = new GameSyncData(balloons, players,

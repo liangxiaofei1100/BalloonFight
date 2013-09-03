@@ -68,16 +68,23 @@ public class ScoreView extends SurfaceView implements SurfaceHolder.Callback,
 
 			@Override
 			public boolean onTouch(View v, MotionEvent event) {
-				int x = (int) event.getRawX();
-				int y = (int) event.getRawY();
-				if (3 * width / 8 < x && x < 5 * width / 8) {
-					if (13 * height / 32 < y && y < 17 * height / 32) {
-						MainActivity.mainActivity.finish();
-					} else if (18 * height / 32 < y && y < 22 * height / 32) {
-						GameView.mGameView.resetGame();
-						reset();
-						over_flag = false;
-						drawView();
+				if (over_flag) {
+					int x = (int) event.getRawX();
+					int y = (int) event.getRawY();
+					if (3 * width / 8 < x && x < 5 * width / 8) {
+						if (13 * height / 32 < y && y < 17 * height / 32) {
+							// Quit game button clicked.
+							if (mGameOverListener != null) {
+								mGameOverListener.onGameOverQuit();
+							}
+							MainActivity.mainActivity.finish();
+						} else if (18 * height / 32 < y && y < 22 * height / 32) {
+							// Player again button clicked.
+							if (mGameOverListener != null) {
+								mGameOverListener.onGameOverPlayAgain();
+							}
+							reset();
+						}
 					}
 				}
 				return false;
@@ -168,6 +175,10 @@ public class ScoreView extends SurfaceView implements SurfaceHolder.Callback,
 			}
 			GameView.mGameView.clearData();
 		}
+
+		if (mOnSoreChangedListener != null) {
+			mOnSoreChangedListener.onLifeChanged(p1Life, p2Life);
+		}
 		drawView();
 	}
 
@@ -177,6 +188,10 @@ public class ScoreView extends SurfaceView implements SurfaceHolder.Callback,
 			p1Score += 100;
 		else
 			p2Score += 100;
+
+		if (mOnSoreChangedListener != null) {
+			mOnSoreChangedListener.onScoreChanged(p1Score, p2Score);
+		}
 		drawView();
 	}
 
@@ -224,8 +239,66 @@ public class ScoreView extends SurfaceView implements SurfaceHolder.Callback,
 		canvas.drawText(string, width / 2, 3 * height / 8, paint);
 	}
 
-	private void reset() {
+	public void reset() {
 		p1Score = p2Score = 0;
 		p1Life = p2Life = 3;
+		over_flag = false;
+		drawView();
+	}
+
+	public void setLife(int lifeOfPlayer1, int lifeOfPlayer2) {
+		p1Life = lifeOfPlayer1;
+		p2Life = lifeOfPlayer2;
+		drawView();
+	}
+
+	public void setScore(int scoreOfPlayer1, int scoreOfPlayer2) {
+		p1Score = scoreOfPlayer1;
+		p2Score = scoreOfPlayer2;
+		drawView();
+	}
+
+	private OnSoreChangedListener mOnSoreChangedListener;
+
+	public void setOnSoreChangedListener(OnSoreChangedListener listener) {
+		mOnSoreChangedListener = listener;
+	}
+
+	public interface OnSoreChangedListener {
+
+		/**
+		 * Life is changed.
+		 * 
+		 * @param lifeOfPlayer1
+		 * @param lifeOfPlayer2
+		 */
+		void onLifeChanged(int lifeOfPlayer1, int lifeOfPlayer2);
+
+		/**
+		 * Score is changed.
+		 * 
+		 * @param scoreOfPlayer1
+		 * @param scoreOfPlayer2
+		 */
+		void onScoreChanged(int scoreOfPlayer1, int scoreOfPlayer2);
+	}
+
+	private OnGameOverListener mGameOverListener;
+
+	public void setOnGameOverListener(OnGameOverListener listener) {
+		mGameOverListener = listener;
+	}
+
+	public interface OnGameOverListener {
+
+		/**
+		 * Finish and quit the game.
+		 */
+		void onGameOverQuit();
+
+		/**
+		 * Reset and play the game again.
+		 */
+		void onGameOverPlayAgain();
 	}
 }

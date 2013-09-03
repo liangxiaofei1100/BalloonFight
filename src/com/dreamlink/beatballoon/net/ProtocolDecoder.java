@@ -45,14 +45,39 @@ public class ProtocolDecoder {
 			handMessageJoin(data, sendUser);
 			break;
 		case Protocol.TYPE_SEARCH_OTHER_PLAYERS:
-			Log.d(TAG, "TYPE_JOIN_GAME");
+			Log.d(TAG, "TYPE_SEARCH_OTHER_PLAYERS");
 			handMessageSearchPlayers(data, sendUser);
+			break;
+		case Protocol.TYPE_SYNC_SCORE:
+			Log.d(TAG, "TYPE_SYNC_SCORE");
+			handMessageSyncScore(data, sendUser);
+			break;
+		case Protocol.TYPE_SYNC_LIFE:
+			Log.d(TAG, "TYPE_SYNC_LIFE");
+			handMessageSyncLife(data, sendUser);
 			break;
 		default:
 			Log.d(TAG, "Unkown message type: " + msgType);
 			break;
 		}
 
+	}
+
+	private void handMessageSyncLife(byte[] data, User sendUser) {
+		LifeData lifeData = (LifeData) ArrayUtil.byteArrayToObject(data);
+		if (mCallback != null) {
+			mCallback.onSyncLife(lifeData.getLifeOfPlayer1(),
+					lifeData.getLifeOfPlayer2());
+		}
+
+	}
+
+	private void handMessageSyncScore(byte[] data, User sendUser) {
+		ScoreData scoreData = (ScoreData) ArrayUtil.byteArrayToObject(data);
+		if (mCallback != null) {
+			mCallback.onSyncSore(scoreData.getScoreOfPlayer1(),
+					scoreData.getScoreOfPlayer2());
+		}
 	}
 
 	private void handleMessageInputTouchEvent(byte[] data, User sendUser) {
@@ -112,5 +137,9 @@ public class ProtocolDecoder {
 		void onSearchRequest(User sendUser);
 
 		void onPlayerTouch(float x, float y);
+
+		void onSyncSore(int scoreOfPlayer1, int scoreOfPlayer2);
+
+		void onSyncLife(int lifeOfPlayer1, int lifeOfPlayer2);
 	}
 }

@@ -21,6 +21,10 @@ public class Protocol {
 	public static final int TYPE_THE_PLAYER_QUIT = 102;
 	/** Game is over and the other player want replay the game. */
 	public static final int TYPE_THE_PLAYER_REPLAY = 103;
+	/** Sync the scores of host and client */
+	public static final int TYPE_SYNC_SCORE = 104;
+	/** Sync the life of host and client */
+	public static final int TYPE_SYNC_LIFE = 105;
 
 	// Protocols about game controls.
 	/** Search other players to found out who is already in the game */
