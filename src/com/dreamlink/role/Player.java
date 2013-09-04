@@ -17,6 +17,7 @@ public class Player extends Thread {
 	private int bottomHeight, topHeight;
 	private int maxX;
 	private float DownSpeed, UpSpeed, XSpeed;
+	private boolean mResetFlag = false;
 
 	public void registerCallback(HumanLife humanLife) {
 		this.humanLife = humanLife;
@@ -36,6 +37,10 @@ public class Player extends Thread {
 	}
 
 	public void lifeDec() {
+		if (mResetFlag) {
+			return;
+		}
+		mResetFlag = true;
 		humanLife.lifeDec(id);
 		newLocate();
 	}
@@ -255,6 +260,6 @@ public class Player extends Thread {
 	private void newLocate() {
 		this.x = maxX / 4;
 		this.y = topHeight;
-
+		mResetFlag = false;
 	}
 }

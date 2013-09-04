@@ -154,11 +154,11 @@ public class ScoreView extends SurfaceView implements SurfaceHolder.Callback,
 	private void drawScore(int p1, int p2, int p1l, int p2l, Canvas canvas) {
 		paint.setTextSize(height / 16);
 		paint.setColor(Color.GREEN);
-		canvas.drawText("X" + p1Life + "  " + "P1:" + p1, width / 6,
+		canvas.drawText("X" + p1Life + "--" + "P1:" + p1, width / 6,
 				height / 16, paint);
 		/*--------------------------*/
 		paint.setColor(Color.RED);
-		canvas.drawText("X" + p2Life + "  " + "P2:" + p2, 5 * width / 6,
+		canvas.drawText("X" + p2Life + "--" + "P2:" + p2, 5 * width / 6,
 				height / 16, paint);
 
 	}

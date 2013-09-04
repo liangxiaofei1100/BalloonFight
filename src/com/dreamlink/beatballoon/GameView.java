@@ -150,10 +150,12 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
 				// Sync with other players.
 				if (mIsHost) {
 					if (mCallback != null && mIsPlayerJoined) {
-						mCallback.onSyncOtherPlayers((Balloon[]) balloons
-								.keySet().toArray(new Balloon[0]),
-								new Player[] { human1, human2 }, getWidth(),
-								getHeight());
+						if (human1 != null && human2 != null) {
+							mCallback.onSyncOtherPlayers((Balloon[]) balloons
+									.keySet().toArray(new Balloon[0]),
+									new Player[] { human1, human2 },
+									getWidth(), getHeight());
+						}
 					}
 					try {
 						canvas = holder.lockCanvas();
