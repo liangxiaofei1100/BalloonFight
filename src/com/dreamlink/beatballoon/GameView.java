@@ -19,6 +19,7 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.PixelFormat;
 import android.graphics.PorterDuff.Mode;
+import android.os.DropBoxManager.Entry;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -63,7 +64,7 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
 		ballBitman = BitmapFactory.decodeResource(getResources(),
 				R.drawable.ball_final);
 		p1Bitmap = BitmapFactory.decodeResource(getResources(),
-				R.drawable.human_define_left);
+				R.drawable.human_define_left2);
 		p2Bitmap = BitmapFactory.decodeResource(getResources(),
 				R.drawable.human_define_right);
 		paint = new Paint();
@@ -99,7 +100,7 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
 	@Override
 	public void surfaceChanged(SurfaceHolder holder, int format, int width,
 			int height) {
-		initGame();
+		// initGame();
 	}
 
 	@Override
@@ -117,6 +118,7 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
 		if (human2 != null) {
 			human2.setstillAlive(false);
 		}
+		clearData();
 		ballBitman.recycle();
 		p1Bitmap.recycle();
 		p2Bitmap.recycle();
@@ -249,8 +251,8 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
 	}
 
 	private void initGame() {
+		clearData();
 		humans.clear();
-		balloons.clear();
 		gaming = true;
 		human1 = new Player(0, getTopHeight(), getBottomHeight(), getWidth());
 		human2 = new Player(1, getTopHeight(), getBottomHeight(), getWidth());
@@ -278,6 +280,10 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
 		if (balloonThread != null) {
 			balloonThread.flag = false;
 		}
+		for (java.util.Map.Entry<Balloon, Float> baEntry : balloons.entrySet()) {
+			baEntry.getKey().setExsit(false);
+		}
+		balloons.clear();
 		if (human1 != null)
 			human1.setstillAlive(false);
 		if (human2 != null)
@@ -316,25 +322,25 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
 		int height = getHeight();
 		balloons.clear();
 		for (BalloonData balloonData : balloons2) {
-			Balloon balloon = new Balloon((int) (balloonData.getX() * width),
-					(int) (balloonData.getY() * height));
+			Balloon balloon = new Balloon((balloonData.getX() * width),
+					(balloonData.getY() * height));
 			balloons.put(balloon, balloon.getX());
 		}
 		int playerNumber = players.size();
 		if (playerNumber == 1) {
 			PlayerData playerData = players.get(0);
 			human1 = new Player(0);
-			human1.setX((int) (playerData.getX() * width));
-			human1.setY((int) (playerData.getY() * height));
+			human1.setX((playerData.getX() * width));
+			human1.setY((playerData.getY() * height));
 		} else if (playerNumber == 2) {
 			PlayerData playerData = players.get(0);
 			human1 = new Player(0);
-			human1.setX((int) (playerData.getX() * width));
-			human1.setY((int) (playerData.getY() * height));
+			human1.setX((playerData.getX() * width));
+			human1.setY((playerData.getY() * height));
 			playerData = players.get(1);
 			human2 = new Player(1);
-			human2.setX((int) (playerData.getX() * width));
-			human2.setY((int) (playerData.getY() * height));
+			human2.setX((playerData.getX() * width));
+			human2.setY((playerData.getY() * height));
 		}
 		try {
 			canvas = holder.lockCanvas();

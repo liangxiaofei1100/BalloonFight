@@ -3,7 +3,6 @@ package com.dreamlink.role;
 import com.dreamlink.beatballoon.GameView;
 import com.dreamlink.beatballoon.MainActivity;
 
-
 public class Player extends Thread {
 	private int id;
 	private HumanLife humanLife;
@@ -28,11 +27,11 @@ public class Player extends Thread {
 		this.id = id;
 		this.bottomHeight = bottomHeight;
 		this.topHeight = topHeight;
-		UpSpeed = upSpeed = bottomHeight / (4000 / MainActivity.refreshSpeed);
+		UpSpeed = upSpeed = bottomHeight / (3000 / MainActivity.refreshSpeed);
 		DownSpeed = downSpeed = bottomHeight
 				/ (3000 / MainActivity.refreshSpeed);
 		this.maxX = maxX;
-		XSpeed = xSpeed = maxX / (3000 / MainActivity.refreshSpeed);
+		XSpeed = xSpeed = maxX / (2000 / MainActivity.refreshSpeed);
 		humanLocate();
 	}
 
@@ -162,7 +161,43 @@ public class Player extends Thread {
 	private void stillAlive() {
 		if (y >= bottomHeight) {
 			y = bottomHeight;
+			if (moving) {
+				if (movoToPoint.x - x > width / 2) {
+					x += width / 2;
+				} else if (x - movoToPoint.x > width / 2) {
+					x -= width / 2;
+				}
+			}
+			moving = false;
 		}
+		if (y < height / 2) {
+			y = height;
+			if (moving) {
+				if (movoToPoint.x - x > width / 2) {
+					x += width / 2;
+				} else if (x - movoToPoint.x > width / 2) {
+					x -= width / 2;
+				}
+			}
+			moving = false;
+		}
+		if (x < width / 2) {
+			x = width;
+			if (y < bottomHeight - height / 2)
+				y += height / 2;
+			else
+				y = bottomHeight;
+			moving = false;
+		}
+		if (x > maxX - width / 2) {
+			x = maxX - width;
+			if (y < bottomHeight - height / 2)
+				y += height / 2;
+			else
+				y = bottomHeight;
+			moving = false;
+		}
+
 	}
 
 	public void scoreDetect() {
@@ -174,7 +209,7 @@ public class Player extends Thread {
 				.entrySet()) {
 			float xDec = Math.abs(x - b.getKey().getX());
 			float yDec = b.getKey().getY() - y;
-			if (xDec <= width && yDec <= height && yDec >= 0) {
+			if (xDec <= width && yDec <= height && yDec >= height / 2) {
 				b.getKey().setExsit(false);
 				scoreDetect();
 			}

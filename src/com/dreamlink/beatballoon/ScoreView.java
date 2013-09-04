@@ -21,8 +21,8 @@ public class ScoreView extends SurfaceView implements SurfaceHolder.Callback,
 	public static ScoreView mScoreView;
 	private int p1Score;
 	private int p2Score;
-	private int p1Life;
-	private int p2Life;
+	private int p1Life=3;
+	private int p2Life=3;
 	private SurfaceHolder holder;
 	private Context mContext;
 	private boolean over_flag = false;

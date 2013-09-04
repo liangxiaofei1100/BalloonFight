@@ -83,6 +83,10 @@ public class Balloon extends Thread {
 
 	private void detectHuman() {
 		for (Player human : GameView.humans) {
+			if (y < 0 - human.height / 2) {
+				exsit = false;
+				return;
+			}
 			float xDec = Math.abs(human.getX() - x);
 			float yDec = y - human.getY();
 			if (xDec <= human.width && yDec <= human.height
