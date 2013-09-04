@@ -19,10 +19,10 @@ import android.view.SurfaceView;
 
 public class BackgroundView extends SurfaceView implements
 		SurfaceHolder.Callback {
-	public static List<Point> startPoint;
+	public static List<Point> startPoint = new ArrayList<BackgroundView.Point>();
 	private Context mContext;
 	private SurfaceHolder holder;
-	private  int height, width;
+	private int height, width;
 
 	public class Point {
 		int x;
@@ -46,7 +46,6 @@ public class BackgroundView extends SurfaceView implements
 		holder.addCallback(this);
 		height = DisplayUtil.getScreenHeight(context);
 		width = DisplayUtil.getScreenWidth(context);
-		startPoint = new ArrayList<BackgroundView.Point>();
 	}
 
 	public BackgroundView(Context context, AttributeSet attrs) {
@@ -63,6 +62,7 @@ public class BackgroundView extends SurfaceView implements
 		if (context == null || holder == null) {
 			return;
 		}
+		startPoint.clear();
 		Bitmap bitmap = BitmapFactory.decodeResource(getResources(),
 				R.drawable.background);
 		RectF rectF = new RectF(0, 0, width, height);
@@ -119,7 +119,6 @@ public class BackgroundView extends SurfaceView implements
 		// TODO Auto-generated method stub
 	}
 
-	
 	public int getBottomHeight() {
 		return BitmapFactory.decodeResource(getResources(), R.drawable.bo)
 				.getHeight();

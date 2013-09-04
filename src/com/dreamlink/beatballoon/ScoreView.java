@@ -1,6 +1,5 @@
 package com.dreamlink.beatballoon;
 
-import com.dreamlink.role.Player;
 import com.dreamlink.role.Player.HumanLife;
 import com.dreamlink.util.DisplayUtil;
 
@@ -9,11 +8,9 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.PixelFormat;
-import android.graphics.Rect;
 import android.graphics.PorterDuff.Mode;
 import android.graphics.RectF;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -35,6 +32,11 @@ public class ScoreView extends SurfaceView implements SurfaceHolder.Callback,
 	private String mGameOverReplay;
 	private String mGameOverQuit;
 	private Paint paint;
+	private boolean mIsHost = true;
+
+	public void setmIsHost(boolean mIsHost) {
+		this.mIsHost = mIsHost;
+	}
 
 	public ScoreView(Context context) {
 		super(context);
@@ -71,20 +73,17 @@ public class ScoreView extends SurfaceView implements SurfaceHolder.Callback,
 				if (over_flag) {
 					int x = (int) event.getRawX();
 					int y = (int) event.getRawY();
-					if (3 * width / 8 < x && x < 5 * width / 8) {
-						if (13 * height / 32 < y && y < 17 * height / 32) {
-							// Quit game button clicked.
-							if (mGameOverListener != null) {
-								mGameOverListener.onGameOverQuit();
-							}
-							MainActivity.mainActivity.finish();
-						} else if (18 * height / 32 < y && y < 22 * height / 32) {
-							// Player again button clicked.
-							if (mGameOverListener != null) {
-								mGameOverListener.onGameOverPlayAgain();
-							}
-							reset();
+					if (finishRectF.contains(x, y)) {
+						// Quit game button clicked.
+						if (mGameOverListener != null) {
+							mGameOverListener.onGameOverQuit();
 						}
+					} else if (retryRectF.contains(x, y)) {
+						// Player again button clicked.
+						if (mGameOverListener != null) {
+							mGameOverListener.onGameOverPlayAgain();
+						}
+						reset();
 					}
 				}
 				return false;
@@ -128,11 +127,15 @@ public class ScoreView extends SurfaceView implements SurfaceHolder.Callback,
 			if (over_flag) {
 				drawFinish(canvas);
 				drawRetry(canvas);
-				drawOverText(canvas, "You Win");
+				if (localWin) {
+					drawOverText(canvas, "You Win");
+				} else {
+					drawOverText(canvas, "You Lose");
+				}
 			}
 			holder.unlockCanvasAndPost(canvas);
 		} catch (Exception e) {
-			// TODO: handle exception
+			e.printStackTrace();
 		}
 	}
 
@@ -151,14 +154,12 @@ public class ScoreView extends SurfaceView implements SurfaceHolder.Callback,
 	private void drawScore(int p1, int p2, int p1l, int p2l, Canvas canvas) {
 		paint.setTextSize(height / 16);
 		paint.setColor(Color.GREEN);
-		canvas.drawText("P1:" + p1, width / 6, height / 16, paint);
-		/*--------------------------*/
-		paint.setColor(Color.BLUE);
-		canvas.drawText("P1:" + p1l + "/P2:" + p2l, width / 2, height / 16,
-				paint);
+		canvas.drawText("X" + p1Life + "  " + "P1:" + p1, width / 6,
+				height / 16, paint);
 		/*--------------------------*/
 		paint.setColor(Color.RED);
-		canvas.drawText("P2:" + p2, 5 * width / 6, height / 16, paint);
+		canvas.drawText("X" + p2Life + "  " + "P2:" + p2, 5 * width / 6,
+				height / 16, paint);
 
 	}
 
@@ -168,13 +169,7 @@ public class ScoreView extends SurfaceView implements SurfaceHolder.Callback,
 			p1Life--;
 		else
 			p2Life--;
-		if (p1Life < 0 || p2Life < 0) {
-			over_flag = true;
-			for (Player human : GameView.humans) {
-				human.setstillAlive(false);
-			}
-			GameView.mGameView.clearData();
-		}
+		detectOver();
 
 		if (mOnSoreChangedListener != null) {
 			mOnSoreChangedListener.onLifeChanged(p1Life, p2Life);
@@ -194,28 +189,6 @@ public class ScoreView extends SurfaceView implements SurfaceHolder.Callback,
 		}
 		drawView();
 	}
-
-	// private void drawOverView() {
-	// Canvas canvas = holder.lockCanvas(new Rect(width / 8, height / 8,
-	// 7 * width / 8, 7 * height / 8));
-	// canvas.drawColor(Color.TRANSPARENT, Mode.CLEAR);
-	// Paint paint = new Paint();
-	// paint.setAntiAlias(true);
-	// paint.setColor(Color.WHITE);
-	// paint.setTextSize(80);
-	// paint.setTextAlign(Paint.Align.CENTER);
-	// canvas.drawRect(finishRectF, paint);
-	// canvas.drawRect(retryRectF, paint);
-	// if (localWin)
-	// canvas.drawText("You   Win ", width / 2, 3 * height / 8, paint);
-	// else
-	// canvas.drawText("You   Lose", width / 2, 3 * height / 8, paint);
-	// paint.setTextSize(40);
-	// paint.setColor(Color.BLACK);
-	// canvas.drawText(mGameOverQuit, width / 2, 16 * height / 32, paint);
-	// canvas.drawText(mGameOverReplay, width / 2, 21 * height / 32, paint);
-	// holder.unlockCanvasAndPost(canvas);
-	// }
 
 	private void drawRetry(Canvas canvas) {
 		paint.setColor(Color.WHITE);
@@ -249,6 +222,7 @@ public class ScoreView extends SurfaceView implements SurfaceHolder.Callback,
 	public void setLife(int lifeOfPlayer1, int lifeOfPlayer2) {
 		p1Life = lifeOfPlayer1;
 		p2Life = lifeOfPlayer2;
+		detectOver();
 		drawView();
 	}
 
@@ -300,5 +274,23 @@ public class ScoreView extends SurfaceView implements SurfaceHolder.Callback,
 		 * Reset and play the game again.
 		 */
 		void onGameOverPlayAgain();
+	}
+
+	private void detectOver() {
+		if (p1Life < 0 || p2Life < 0) {
+			over_flag = true;
+			GameView.mGameView.clearData();
+			if (p1Life < 0) {
+				if (mIsHost)
+					localWin = false;
+				else
+					localWin = true;
+			} else {
+				if (!mIsHost)
+					localWin = false;
+				else
+					localWin = true;
+			}
+		}
 	}
 }

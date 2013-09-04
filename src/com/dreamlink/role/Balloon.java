@@ -1,28 +1,30 @@
 package com.dreamlink.role;
 
+import java.util.Random;
+
 import android.util.Log;
 
 import com.dreamlink.beatballoon.GameView;
 import com.dreamlink.beatballoon.MainActivity;
 
 public class Balloon extends Thread {
-	private int bigX, lessX;
+	private int maxX, minX;
 	private int x, y;
-	private int speed;
-	public boolean exsit = true;
-	final int step = 5;
+	private int speedY;
+	private boolean exsit = true;
+	private static final int speedX = 5;
+	private static Random random = new Random();
+	private int maxY, minY;
 
 	public Balloon(int x, int y) {
 		this.x = x;
 		this.y = y;
-		bigX = x + 60;
-		lessX = x - 60;
-		speed = (int) (Math.random() * 10);
-		if (speed == 0) {
-			speed = 1;
-		} else if (speed >= 8) {
-			speed = 8;
-		}
+		maxY = y;
+		minY = 0;
+		maxX = x + 60;
+		minX = x - 60;
+		speedY = random.nextInt(4) + 2;
+		speedY = ((maxY - minY) / (speedY * 1000 / MainActivity.refreshSpeed));
 	}
 
 	@Override
@@ -31,18 +33,18 @@ public class Balloon extends Thread {
 		super.run();
 		while (exsit) {
 			detectHuman();
-			y -= speed;
+			y -= speedY;
 			if (y < 0) {
 				exsit = false;
 				break;
 			}
 			if (Math.random() > 0.5) {
-				if (x + step < bigX) {
-					x += step;
+				if (x + speedX < maxX) {
+					x += speedX;
 				}
 			} else {
-				if (x - step > lessX) {
-					x -= step;
+				if (x - speedX > minX) {
+					x -= speedX;
 				}
 			}
 			detectHuman();

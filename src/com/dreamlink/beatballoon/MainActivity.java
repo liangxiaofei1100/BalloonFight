@@ -149,9 +149,11 @@ public class MainActivity extends Activity implements ProtocolDecoder.Callback,
 			}
 			Log.d(TAG, "startGame() isHost = " + mIsHost);
 			mGameView.startGame(mIsHost);
+			mScoreView.setmIsHost(mIsHost);
 		} else {
 			Log.e(TAG, "startGame() error, player count: " + mPlayers.size());
 			mGameView.startGame(true);
+			mScoreView.setmIsHost(true);
 		}
 	}
 

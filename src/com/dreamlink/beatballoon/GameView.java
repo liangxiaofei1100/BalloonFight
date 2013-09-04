@@ -254,8 +254,8 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
 		humans.clear();
 		balloons.clear();
 		gaming = true;
-		human1 = new Player(0, getTopHeight(), getBottomHeight());
-		human2 = new Player(1, getTopHeight(), getBottomHeight());
+		human1 = new Player(0, getTopHeight(), getBottomHeight(), getWidth());
+		human2 = new Player(1, getTopHeight(), getBottomHeight(), getWidth());
 		if (mIsHost) {
 			human1.registerCallback(ScoreView.mScoreView);
 			human2.registerCallback(ScoreView.mScoreView);
@@ -267,6 +267,11 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
 			balloonThread.start();
 			setHumanStatus(0, 0);
 			setHumanStatus(0, 1);
+		} else {
+			/**
+			 * single player should initialization here,need add one flag to
+			 * check it is client or single play
+			 * */
 		}
 	}
 

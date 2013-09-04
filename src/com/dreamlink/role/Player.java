@@ -10,23 +10,30 @@ public class Player extends Thread {
 	private HumanLife humanLife;
 	private int x, y;
 	private boolean stillAlive = true;
-	private int upSpeed = 6, downSpeed = 8;
-	private int xSpeed = 10;
+	private int upSpeed, downSpeed;
+	private int xSpeed;
 	private boolean moving = false;
 	private Point movoToPoint;
 	public int height, width;
 	public boolean hasBalloon = true;
 	private int bottomHeight, topHeight;
+	private int maxX;
+	private int DownSpeed, UpSpeed, XSpeed;
 
 	public void registerCallback(HumanLife humanLife) {
 		this.humanLife = humanLife;
 	}
 
-	public Player(int id, int topHeight, int bottomHeight) {
+	public Player(int id, int topHeight, int bottomHeight, int maxX) {
 		// TODO Auto-generated constructor stub
 		this.id = id;
 		this.bottomHeight = bottomHeight;
 		this.topHeight = topHeight;
+		UpSpeed = upSpeed = bottomHeight / (4000 / MainActivity.refreshSpeed);
+		DownSpeed = downSpeed = bottomHeight
+				/ (3000 / MainActivity.refreshSpeed);
+		this.maxX = maxX;
+		XSpeed = xSpeed = maxX / (3000 / MainActivity.refreshSpeed);
 		humanLocate();
 	}
 
@@ -72,7 +79,6 @@ public class Player extends Thread {
 
 	@Override
 	public void run() {
-		// TODO Auto-generated method stub
 		super.run();
 		while (stillAlive) {
 			if (moving) {
@@ -80,10 +86,11 @@ public class Player extends Thread {
 					doMove();
 				} else {
 					moving = false;
+					downSpeed = DownSpeed;
 					y += downSpeed;
 				}
 			} else {
-				downSpeed=8;
+				downSpeed = DownSpeed;
 				y += downSpeed;
 			}
 			detectBalloons();
@@ -92,7 +99,6 @@ public class Player extends Thread {
 			try {
 				Thread.sleep(MainActivity.refreshSpeed);
 			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
@@ -110,31 +116,23 @@ public class Player extends Thread {
 			return;
 		}
 		if (movoToPoint.x != x && movoToPoint.y == y) {
-			xSpeed = 10;
+			xSpeed = XSpeed;
 		} else if (movoToPoint.x == x && movoToPoint.y != y) {
 			xSpeed = 0;
-		} else if (movoToPoint.y > y) {
-			int xDec = Math.abs(movoToPoint.x - x);
-			int yDec = Math.abs(movoToPoint.y - y);
-			if (xDec / yDec > 3) {
-				xSpeed = 10;
-				xSpeed = 10;
-				upSpeed = downSpeed = xSpeed * yDec / xDec;
-			} else {
-				upSpeed = 6;
-				downSpeed = 8;
-				xSpeed = upSpeed * xDec / yDec;
-			}
 		} else {
 			int xDec = Math.abs(movoToPoint.x - x);
 			int yDec = Math.abs(movoToPoint.y - y);
-			if (xDec / yDec > 3) {
-				xSpeed = 10;
+			if (xDec / yDec >= 3) {
+				xSpeed = XSpeed;
 				upSpeed = downSpeed = xSpeed * yDec / xDec;
 			} else {
-				upSpeed = 6;
-				downSpeed = 8;
-				xSpeed = upSpeed * xDec / yDec;
+				upSpeed = UpSpeed;
+				downSpeed = DownSpeed;
+				if (movoToPoint.y > y) {
+					xSpeed = downSpeed * xDec / yDec;
+				} else {
+					xSpeed = upSpeed * xDec / yDec;
+				}
 			}
 		}
 		if (movoToPoint.x - x >= 0) {
@@ -176,7 +174,7 @@ public class Player extends Thread {
 		for (java.util.Map.Entry<Balloon, Integer> b : GameView.balloons
 				.entrySet()) {
 			int xDec = Math.abs(x - b.getKey().getX());
-			int yDec = b.getKey().getY()-y;
+			int yDec = b.getKey().getY() - y;
 			if (xDec <= width && yDec <= height && yDec >= 0) {
 				b.getKey().setExsit(false);
 				scoreDetect();
@@ -191,12 +189,20 @@ public class Player extends Thread {
 			} else {
 				int xDec = Math.abs(human.getX() - this.x);
 				int yDec = this.y - human.y;
-				if (xDec <= width / 2 && Math.abs(yDec) <= height / 2) {
+				if (xDec <= width / 2 && Math.abs(yDec) >= height / 2
+						&& Math.abs(yDec) < height) {
 					if (yDec < 0) {
 						human.lifeDec();
 					} else {
 						this.lifeDec();
 					}
+				} else if (Math.abs(yDec) <= height / 2 && xDec < width / 2) {
+					if (human.getX() > this.x) {
+						this.x -= width;
+					} else {
+						this.x += width;
+					}
+					moving = false;
 				}
 			}
 		}
@@ -204,16 +210,16 @@ public class Player extends Thread {
 
 	private void humanLocate() {
 		if (id == 0) {
-			x = 3 * MainActivity.mainActivity.width / 4;
+			x = 3 * maxX / 4;
 			y = bottomHeight;
 		} else {
-			x = MainActivity.mainActivity.width / 4;
+			x = maxX / 4;
 			y = bottomHeight;
 		}
 	}
 
 	private void newLocate() {
-		this.x = MainActivity.mainActivity.width / 4;
+		this.x = maxX / 4;
 		this.y = topHeight;
 
 	}
