@@ -24,7 +24,6 @@ public class Player extends Thread {
 	}
 
 	public Player(int id, int topHeight, int bottomHeight, int maxX) {
-		// TODO Auto-generated constructor stub
 		this.id = id;
 		this.bottomHeight = bottomHeight;
 		this.topHeight = topHeight;

@@ -10,6 +10,7 @@ import com.dreamlink.role.Balloon;
 import com.dreamlink.role.Player;
 import com.dreamlink.role.Point;
 import com.dreamlink.util.DisplayUtil;
+import com.dreamlink.util.Log;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -19,9 +20,7 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.PixelFormat;
 import android.graphics.PorterDuff.Mode;
-import android.os.DropBoxManager.Entry;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -151,10 +150,16 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
 				if (mIsHost) {
 					if (mCallback != null && mIsPlayerJoined) {
 						if (human1 != null && human2 != null) {
-							mCallback.onSyncOtherPlayers((Balloon[]) balloons
-									.keySet().toArray(new Balloon[0]),
-									new Player[] { human1, human2 },
-									getWidth(), getHeight());
+							try {
+								mCallback.onSyncOtherPlayers(
+										(Balloon[]) balloons.keySet().toArray(
+												new Balloon[0]), new Player[] {
+												human1, human2 }, getWidth(),
+										getHeight());
+							} catch (Exception e) {
+								Log.e("onSyncOtherPlayers",
+										e.toString());
+							}
 						}
 					}
 					try {
@@ -162,7 +167,6 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
 						drawRole(canvas);
 						holder.unlockCanvasAndPost(canvas);
 					} catch (Exception e) {
-						// TODO: handle exception
 						if (canvas != null) {
 							holder.unlockCanvasAndPost(canvas);
 						}
@@ -349,7 +353,6 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
 			drawRole(canvas);
 			holder.unlockCanvasAndPost(canvas);
 		} catch (Exception e) {
-			// TODO: handle exception
 			if (canvas != null) {
 				holder.unlockCanvasAndPost(canvas);
 			}
