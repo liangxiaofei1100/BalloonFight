@@ -8,6 +8,7 @@ import com.dreamlink.beatballoon.net.BalloonData;
 import com.dreamlink.beatballoon.net.PlayerData;
 import com.dreamlink.role.Balloon;
 import com.dreamlink.role.Player;
+import com.dreamlink.role.Point;
 import com.dreamlink.util.DisplayUtil;
 
 import android.content.Context;
@@ -17,7 +18,6 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.PixelFormat;
-import android.graphics.Point;
 import android.graphics.PorterDuff.Mode;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -31,7 +31,7 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
 	private boolean draw = true;
 	private boolean gaming = true;
 	private Player human1, human2;
-	public static ConcurrentHashMap<Balloon, Integer> balloons;
+	public static ConcurrentHashMap<Balloon, Float> balloons;
 	public static List<Player> humans;
 	public static GameView mGameView;
 	private GameViewCallback mCallback;
@@ -68,16 +68,14 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
 				R.drawable.human_define_right);
 		paint = new Paint();
 		holder.setFormat(PixelFormat.TRANSLUCENT);
-		balloons = new ConcurrentHashMap<Balloon, Integer>();
+		balloons = new ConcurrentHashMap<Balloon, Float>();
 		humans = new ArrayList<Player>();
 		setFocusable(true);
 		this.setOnTouchListener(new OnTouchListener() {
 
 			@Override
 			public boolean onTouch(View v, MotionEvent event) {
-				Point point = new Point();
-				point.x = (int) event.getRawX();
-				point.y = (int) event.getRawY();
+				Point point = new Point(event.getRawX(), event.getRawY());
 				if (mIsHost && human1 != null) {
 					human1.moveTo(point);
 				} else if (!mIsHost) {
@@ -134,7 +132,7 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
 					continue;
 				}
 				ArrayList<Balloon> temp = new ArrayList<Balloon>();
-				for (java.util.Map.Entry<Balloon, Integer> b : balloons
+				for (java.util.Map.Entry<Balloon, Float> b : balloons
 						.entrySet()) {
 					if (!b.getKey().isExsit()) {
 						temp.add(b.getKey());
@@ -178,7 +176,7 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
 
 	private void drawRole(Canvas canvas) {
 		canvas.drawColor(Color.TRANSPARENT, Mode.CLEAR);
-		for (java.util.Map.Entry<Balloon, Integer> b : balloons.entrySet()) {
+		for (java.util.Map.Entry<Balloon, Float> b : balloons.entrySet()) {
 			canvas.drawBitmap(ballBitman,
 					b.getKey().getX() - ballBitman.getWidth() / 2, b.getKey()
 							.getY() - ballBitman.getHeight(), paint);
@@ -365,9 +363,8 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
 	}
 
 	public void onPlayerTouch(float x, float y) {
-		Point point = new Point();
-		point.x = (int) (x * DisplayUtil.getScreenWidth(mContext));
-		point.y = (int) (y * DisplayUtil.getScreenHeight(mContext));
+		Point point = new Point(x * DisplayUtil.getScreenWidth(mContext), y
+				* DisplayUtil.getScreenHeight(mContext));
 		if (mIsHost && human2 != null) {
 			human2.moveTo(point);
 		}

@@ -3,22 +3,21 @@ package com.dreamlink.role;
 import com.dreamlink.beatballoon.GameView;
 import com.dreamlink.beatballoon.MainActivity;
 
-import android.graphics.Point;
 
 public class Player extends Thread {
 	private int id;
 	private HumanLife humanLife;
-	private int x, y;
+	private float x, y;
 	private boolean stillAlive = true;
-	private int upSpeed, downSpeed;
-	private int xSpeed;
+	private float upSpeed, downSpeed;
+	private float xSpeed;
 	private boolean moving = false;
 	private Point movoToPoint;
 	public int height, width;
 	public boolean hasBalloon = true;
 	private int bottomHeight, topHeight;
 	private int maxX;
-	private int DownSpeed, UpSpeed, XSpeed;
+	private float DownSpeed, UpSpeed, XSpeed;
 
 	public void registerCallback(HumanLife humanLife) {
 		this.humanLife = humanLife;
@@ -48,19 +47,19 @@ public class Player extends Thread {
 		public void scoreAdd(int id);
 	}
 
-	public int getX() {
+	public float getX() {
 		return x;
 	}
 
-	public void setX(int x) {
+	public void setX(float x) {
 		this.x = x;
 	}
 
-	public int getY() {
+	public float getY() {
 		return y;
 	}
 
-	public void setY(int y) {
+	public void setY(float y) {
 		this.y = y;
 	}
 
@@ -120,8 +119,8 @@ public class Player extends Thread {
 		} else if (movoToPoint.x == x && movoToPoint.y != y) {
 			xSpeed = 0;
 		} else {
-			int xDec = Math.abs(movoToPoint.x - x);
-			int yDec = Math.abs(movoToPoint.y - y);
+			float xDec = Math.abs(movoToPoint.x - x);
+			float yDec = Math.abs(movoToPoint.y - y);
 			if (xDec / yDec >= 3) {
 				xSpeed = XSpeed;
 				upSpeed = downSpeed = xSpeed * yDec / xDec;
@@ -171,10 +170,10 @@ public class Player extends Thread {
 	}
 
 	private void detectBalloons() {
-		for (java.util.Map.Entry<Balloon, Integer> b : GameView.balloons
+		for (java.util.Map.Entry<Balloon, Float> b : GameView.balloons
 				.entrySet()) {
-			int xDec = Math.abs(x - b.getKey().getX());
-			int yDec = b.getKey().getY() - y;
+			float xDec = Math.abs(x - b.getKey().getX());
+			float yDec = b.getKey().getY() - y;
 			if (xDec <= width && yDec <= height && yDec >= 0) {
 				b.getKey().setExsit(false);
 				scoreDetect();
@@ -187,8 +186,8 @@ public class Player extends Thread {
 			if (human.id == this.id) {
 				continue;
 			} else {
-				int xDec = Math.abs(human.getX() - this.x);
-				int yDec = this.y - human.y;
+				float xDec = Math.abs(human.getX() - this.x);
+				float yDec = this.y - human.y;
 				if (xDec <= width / 2 && Math.abs(yDec) >= height / 2
 						&& Math.abs(yDec) < height) {
 					if (yDec < 0) {

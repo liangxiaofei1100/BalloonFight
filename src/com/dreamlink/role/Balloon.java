@@ -8,15 +8,15 @@ import com.dreamlink.beatballoon.GameView;
 import com.dreamlink.beatballoon.MainActivity;
 
 public class Balloon extends Thread {
-	private int maxX, minX;
-	private int x, y;
-	private int speedY;
+	private float maxX, minX;
+	private float x, y;
+	private float speedY;
 	private boolean exsit = true;
 	private static final int speedX = 5;
 	private static Random random = new Random();
-	private int maxY, minY;
+	private float maxY, minY;
 
-	public Balloon(int x, int y) {
+	public Balloon(float x, float y) {
 		this.x = x;
 		this.y = y;
 		maxY = y;
@@ -57,19 +57,19 @@ public class Balloon extends Thread {
 		}
 	}
 
-	public int getX() {
+	public float getX() {
 		return x;
 	}
 
-	public void setX(int x) {
+	public void setX(float x) {
 		this.x = x;
 	}
 
-	public int getY() {
+	public float getY() {
 		return y;
 	}
 
-	public void setY(int y) {
+	public void setY(float y) {
 		this.y = y;
 	}
 
@@ -83,8 +83,8 @@ public class Balloon extends Thread {
 
 	private void detectHuman() {
 		for (Player human : GameView.humans) {
-			int xDec = Math.abs(human.getX() - x);
-			int yDec = y - human.getY();
+			float xDec = Math.abs(human.getX() - x);
+			float yDec = y - human.getY();
 			if (xDec <= human.width && yDec <= human.height
 					&& yDec > human.height / 2) {
 				Log.d("ArbiterLiu", "" + yDec);

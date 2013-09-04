@@ -3,6 +3,7 @@ package com.dreamlink.beatballoon;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.dreamlink.role.Point;
 import com.dreamlink.util.DisplayUtil;
 
 import android.content.Context;
@@ -19,20 +20,10 @@ import android.view.SurfaceView;
 
 public class BackgroundView extends SurfaceView implements
 		SurfaceHolder.Callback {
-	public static List<Point> startPoint = new ArrayList<BackgroundView.Point>();
+	public static List<Point> startPoint = new ArrayList<Point>();
 	private Context mContext;
 	private SurfaceHolder holder;
 	private int height, width;
-
-	public class Point {
-		int x;
-		int y;
-
-		public Point(int x, int y) {
-			this.x = x;
-			this.y = y;
-		}
-	}
 
 	public BackgroundView(Context context) {
 		super(context);
