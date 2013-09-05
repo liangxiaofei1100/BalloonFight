@@ -2,6 +2,7 @@ package com.dreamlink.role;
 
 import com.dreamlink.beatballoon.GameView;
 import com.dreamlink.beatballoon.MainActivity;
+import com.dreamlink.util.Log;
 
 public class Player extends Thread {
 	private int id;
@@ -28,7 +29,7 @@ public class Player extends Thread {
 		this.id = id;
 		this.bottomHeight = bottomHeight;
 		this.topHeight = topHeight;
-		UpSpeed  = bottomHeight / (4000 / MainActivity.refreshSpeed);
+		UpSpeed = bottomHeight / (2000 / MainActivity.refreshSpeed);
 		DownSpeed = bottomHeight / (3000 / MainActivity.refreshSpeed);
 		this.maxX = maxX;
 		XSpeed = maxX / (4000 / MainActivity.refreshSpeed);
@@ -269,14 +270,14 @@ public class Player extends Thread {
 				return;
 			}
 			if (vectorPoint.x > x) {
-				speedX += 1;
+				speedX += 0.5;
 			} else if (vectorPoint.x < x) {
-				speedX -= 1;
+				speedX -= 0.5;
 			}
 			if (vectorPoint.y > y) {
-				speedY = DownSpeed;
+				speedY += 0.5;
 			} else {
-				speedY -= 0.5;
+				speedY -= 1;
 			}
 			if (y <= topHeight) {
 				speedY = -speedY;
@@ -304,7 +305,7 @@ public class Player extends Thread {
 			if (y >= bottomHeight) {
 				speedY = 0;
 			} else {
-				speedY = DownSpeed;
+				speedY += 0.5;
 			}
 			if (Math.abs(speedX) == 0) {
 				speedX = 0;
@@ -314,6 +315,11 @@ public class Player extends Thread {
 			speedY = -UpSpeed;
 		} else if (speedY >= DownSpeed) {
 			speedY = DownSpeed;
+		}
+		if (speedX >= XSpeed) {
+			speedX = XSpeed;
+		} else if (speedX <= -XSpeed) {
+			speedX = -XSpeed;
 		}
 	}
 }

@@ -21,8 +21,8 @@ public class ScoreView extends SurfaceView implements SurfaceHolder.Callback,
 	public static ScoreView mScoreView;
 	private int p1Score;
 	private int p2Score;
-	private int p1Life=3;
-	private int p2Life=3;
+	private int p1Life = 3;
+	private int p2Life = 3;
 	private SurfaceHolder holder;
 	private Context mContext;
 	private boolean over_flag = false;
@@ -33,6 +33,11 @@ public class ScoreView extends SurfaceView implements SurfaceHolder.Callback,
 	private String mGameOverQuit;
 	private Paint paint;
 	private boolean mIsHost = true;
+	private boolean mSingelPlay = true;
+
+	public void setmSingelPlay(boolean mSingelPlay) {
+		this.mSingelPlay = mSingelPlay;
+	}
 
 	public void setmIsHost(boolean mIsHost) {
 		this.mIsHost = mIsHost;
@@ -157,10 +162,11 @@ public class ScoreView extends SurfaceView implements SurfaceHolder.Callback,
 		canvas.drawText("X" + p1Life + "--" + "P1:" + p1, width / 6,
 				height / 16, paint);
 		/*--------------------------*/
-		paint.setColor(Color.RED);
-		canvas.drawText("X" + p2Life + "--" + "P2:" + p2, 5 * width / 6,
-				height / 16, paint);
-
+		if (!mSingelPlay) {
+			paint.setColor(Color.RED);
+			canvas.drawText("X" + p2Life + "--" + "P2:" + p2, 5 * width / 6,
+					height / 16, paint);
+		}
 	}
 
 	@Override

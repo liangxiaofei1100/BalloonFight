@@ -41,6 +41,11 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
 	private Paint paint;
 	private Canvas canvas;
 	private BalloonThread balloonThread;
+	private boolean mSingelPlay = true;
+
+	public void setmSingelPlay(boolean mSingelPlay) {
+		this.mSingelPlay = mSingelPlay;
+	}
 
 	private boolean mIsHost = false;
 	private boolean mIsPlayerJoined = false;
@@ -80,7 +85,7 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
 				if (!gaming) {
 					return false;
 				}
-				if (mIsHost && human1 != null) {
+				if ((mIsHost || mSingelPlay) && human1 != null) {
 					if (event.getAction() == MotionEvent.ACTION_DOWN) {
 						human1.moveTo(point, true);
 					} else if (event.getAction() == MotionEvent.ACTION_UP) {
@@ -117,7 +122,7 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
 	@Override
 	public void surfaceChanged(SurfaceHolder holder, int format, int width,
 			int height) {
-		// initGame();
+		initGame();
 	}
 
 	@Override
@@ -188,6 +193,16 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
 							holder.unlockCanvasAndPost(canvas);
 						}
 					}
+				} else if (mSingelPlay) {
+					try {
+						canvas = holder.lockCanvas();
+						drawRole(canvas);
+						holder.unlockCanvasAndPost(canvas);
+					} catch (Exception e) {
+						if (canvas != null) {
+							holder.unlockCanvasAndPost(canvas);
+						}
+					}
 				}
 				try {
 					Thread.sleep(MainActivity.refreshSpeed);
@@ -226,6 +241,15 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
 		public void run() {
 			super.run();
 			while (flag) {
+				if (BackgroundView.startPoint.size() != 4) {
+					try {
+						Thread.sleep(1000);
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					continue;
+				}
 				Balloon b1 = new Balloon(BackgroundView.startPoint.get(0).x,
 						BackgroundView.startPoint.get(0).y);
 				Balloon b2 = new Balloon(BackgroundView.startPoint.get(1).x,
@@ -278,9 +302,9 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
 		humans.clear();
 		gaming = true;
 		human1 = new Player(0, getTopHeight(), getBottomHeight(), getWidth());
+		human1.registerCallback(ScoreView.mScoreView);
 		human2 = new Player(1, getTopHeight(), getBottomHeight(), getWidth());
 		if (mIsHost) {
-			human1.registerCallback(ScoreView.mScoreView);
 			human2.registerCallback(ScoreView.mScoreView);
 			humans.add(human1);
 			humans.add(human2);
@@ -290,11 +314,17 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
 			balloonThread.start();
 			setHumanStatus(0, 0);
 			setHumanStatus(0, 1);
-		} else {
+		} else if (mSingelPlay) {
 			/**
 			 * single player should initialization here,need add one flag to
 			 * check it is client or single play
 			 * */
+			human2 = null;
+			humans.add(human1);
+			human1.start();
+			balloonThread = new BalloonThread();
+			balloonThread.start();
+			setHumanStatus(0, 0);
 		}
 	}
 

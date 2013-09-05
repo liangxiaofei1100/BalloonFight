@@ -132,6 +132,13 @@ public class MainActivity extends Activity implements ProtocolDecoder.Callback,
 	}
 
 	@Override
+	protected void onResume() {
+		// TODO Auto-generated method stub
+		super.onResume();
+		startGame();
+	}
+
+	@Override
 	protected void onDestroy() {
 		disconnectService();
 		super.onDestroy();
@@ -148,12 +155,16 @@ public class MainActivity extends Activity implements ProtocolDecoder.Callback,
 				mIsHost = false;
 			}
 			Log.d(TAG, "startGame() isHost = " + mIsHost);
-			mGameView.startGame(mIsHost);
+			mScoreView.setmSingelPlay(false);
+			mGameView.setmSingelPlay(false);
 			mScoreView.setmIsHost(mIsHost);
+			mGameView.startGame(mIsHost);
 		} else {
 			Log.e(TAG, "startGame() error, player count: " + mPlayers.size());
-			mGameView.startGame(true);
+			mGameView.setmSingelPlay(true);
 			mScoreView.setmIsHost(true);
+			mScoreView.setmSingelPlay(true);
+			mGameView.startGame(false);
 		}
 	}
 
