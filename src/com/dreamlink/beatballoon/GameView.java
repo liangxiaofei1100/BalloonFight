@@ -20,6 +20,7 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.PixelFormat;
 import android.graphics.PorterDuff.Mode;
+import android.provider.ContactsContract.CommonDataKinds.Event;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
@@ -76,15 +77,32 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
 			@Override
 			public boolean onTouch(View v, MotionEvent event) {
 				Point point = new Point(event.getRawX(), event.getRawY());
+				if (!gaming) {
+					return false;
+				}
 				if (mIsHost && human1 != null) {
-					human1.moveTo(point);
+					if (event.getAction() == MotionEvent.ACTION_DOWN) {
+						human1.moveTo(point, true);
+					} else if (event.getAction() == MotionEvent.ACTION_UP) {
+						human1.moveTo(point, false);
+					} else if (event.getAction() == MotionEvent.ACTION_MOVE) {
+						human1.moveTo(point, true);
+					}
 				} else if (!mIsHost) {
 					if (mCallback != null) {
-						mCallback.onInputTouchEvent(event, getWidth(),
-								getHeight());
+						if (event.getAction() == MotionEvent.ACTION_DOWN) {
+							mCallback.onInputTouchEvent(event, getWidth(),
+									getHeight(), true);
+						} else if (event.getAction() == MotionEvent.ACTION_UP) {
+							mCallback.onInputTouchEvent(event, getWidth(),
+									getHeight(), false);
+						} else if (event.getAction() == MotionEvent.ACTION_MOVE) {
+							mCallback.onInputTouchEvent(event, getWidth(),
+									getHeight(), true);
+						}
 					}
 				}
-				return false;
+				return true;
 			}
 		});
 
@@ -157,8 +175,7 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
 												human1, human2 }, getWidth(),
 										getHeight());
 							} catch (Exception e) {
-								Log.e("onSyncOtherPlayers",
-										e.toString());
+								Log.e("onSyncOtherPlayers", e.toString());
 							}
 						}
 					}
@@ -318,7 +335,7 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
 				int screenWidth, int screenHeight);
 
 		void onInputTouchEvent(MotionEvent motionEvent, int screenWidth,
-				int screenHeight);
+				int screenHeight, boolean touched);
 
 	}
 
@@ -373,11 +390,11 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
 		return DisplayUtil.getScreenHeight(mContext) - height;
 	}
 
-	public void onPlayerTouch(float x, float y) {
+	public void onPlayerTouch(float x, float y, boolean touched) {
 		Point point = new Point(x * DisplayUtil.getScreenWidth(mContext), y
 				* DisplayUtil.getScreenHeight(mContext));
 		if (mIsHost && human2 != null) {
-			human2.moveTo(point);
+			human2.moveTo(point, touched);
 		}
 
 	}

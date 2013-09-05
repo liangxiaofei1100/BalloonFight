@@ -28,9 +28,9 @@ public class ProtocolEncoder {
 	}
 
 	public static byte[] encodeInputTouchEvent(float x, float y,
-			int screenWidth, int screenHeight) {
+			int screenWidth, int screenHeight,boolean touched) {
 		TouchEventData touchEventData = new TouchEventData(x / screenWidth, y
-				/ screenHeight);
+				/ screenHeight,touched);
 		return encode(Protocol.TYPE_INPUT_TOUCH_EVENT, touchEventData);
 	}
 

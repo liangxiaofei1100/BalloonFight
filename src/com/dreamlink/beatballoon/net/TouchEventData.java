@@ -11,10 +11,20 @@ public class TouchEventData implements Serializable {
 
 	private float mX;
 	private float mY;
+	private boolean mTouched = false;
 
-	public TouchEventData(float x, float y) {
+	public TouchEventData(float x, float y, boolean touched) {
 		this.mX = x;
 		this.mY = y;
+		mTouched = touched;
+	}
+
+	public boolean ismTouched() {
+		return mTouched;
+	}
+
+	public void setmTouched(boolean mTouched) {
+		this.mTouched = mTouched;
 	}
 
 	/**

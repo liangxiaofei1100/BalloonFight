@@ -8,16 +8,17 @@ public class Player extends Thread {
 	private HumanLife humanLife;
 	private float x, y;
 	private boolean stillAlive = true;
-	private float upSpeed, downSpeed;
-	private float xSpeed;
 	private boolean moving = false;
-	private Point movoToPoint;
+	private Point vectorPoint;
 	public int height, width;
 	public boolean hasBalloon = true;
 	private int bottomHeight, topHeight;
 	private int maxX;
 	private float DownSpeed, UpSpeed, XSpeed;
 	private boolean mResetFlag = false;
+	private float speedVector;
+	private float speedX, speedY;
+	private boolean stillAdd = true;
 
 	public void registerCallback(HumanLife humanLife) {
 		this.humanLife = humanLife;
@@ -27,11 +28,12 @@ public class Player extends Thread {
 		this.id = id;
 		this.bottomHeight = bottomHeight;
 		this.topHeight = topHeight;
-		UpSpeed = upSpeed = bottomHeight / (3000 / MainActivity.refreshSpeed);
-		DownSpeed = downSpeed = bottomHeight
-				/ (3000 / MainActivity.refreshSpeed);
+		UpSpeed  = bottomHeight / (4000 / MainActivity.refreshSpeed);
+		DownSpeed = bottomHeight / (3000 / MainActivity.refreshSpeed);
 		this.maxX = maxX;
-		XSpeed = xSpeed = maxX / (2000 / MainActivity.refreshSpeed);
+		XSpeed = maxX / (4000 / MainActivity.refreshSpeed);
+		speedX = XSpeed;
+		speedY = 0;
 		humanLocate();
 	}
 
@@ -83,17 +85,40 @@ public class Player extends Thread {
 	public void run() {
 		super.run();
 		while (stillAlive) {
+			// if (moving) {
+			// if (x != vectorPoint.x || y != vectorPoint.y) {
+			// doMove();
+			// if (speedVector == 0) {
+			//
+			// speedVector = (vectorPoint.y - y) / (vectorPoint.x - x);
+			// }
+			//
+			// } else {
+			// moving = false;
+			// downSpeed = DownSpeed;
+			// y += downSpeed;
+			// }
+			// } else {
+			// if (downSpeed <= 0) {
+			// downSpeed = 0;
+			// } else {
+			// downSpeed += 0.5f;
+			// }
+			// y += downSpeed;
+			// }
+			speedOp(moving);
+			x += speedX;
+			y += speedY;
 			if (moving) {
-				if (x != movoToPoint.x || y != movoToPoint.y) {
-					doMove();
-				} else {
-					moving = false;
-					downSpeed = DownSpeed;
-					y += downSpeed;
+				if (Math.abs(vectorPoint.x - x) <= Math.abs(speedX)) {
+					x = vectorPoint.x;
 				}
-			} else {
-				downSpeed = DownSpeed;
-				y += downSpeed;
+				if (Math.abs(vectorPoint.y - y) <= Math.abs(speedY)) {
+					y = vectorPoint.y;
+				}
+				if (vectorPoint.x == x && vectorPoint.y == y) {
+					stillAdd = false;
+				}
 			}
 			detectBalloons();
 			detectHuman();
@@ -106,100 +131,76 @@ public class Player extends Thread {
 		}
 	}
 
-	public void moveTo(Point point) {
-		movoToPoint = point;
-		moving = true;
-		xSpeed = 0;
-	}
-
-	private void doMove() {
-		if (!hasBalloon) {
-			y += downSpeed;
-			return;
-		}
-		if (movoToPoint.x != x && movoToPoint.y == y) {
-			xSpeed = XSpeed;
-		} else if (movoToPoint.x == x && movoToPoint.y != y) {
-			xSpeed = 0;
-		} else {
-			float xDec = Math.abs(movoToPoint.x - x);
-			float yDec = Math.abs(movoToPoint.y - y);
-			if (xDec / yDec >= 3) {
-				xSpeed = XSpeed;
-				upSpeed = downSpeed = xSpeed * yDec / xDec;
+	public void moveTo(Point point, boolean moveing) {
+		vectorPoint = point;
+		this.moving = moveing;
+		if (vectorPoint != null && moveing) {
+			if (vectorPoint.x != x) {
+				speedVector = (vectorPoint.y - y) / (vectorPoint.x - x);
 			} else {
-				upSpeed = UpSpeed;
-				downSpeed = DownSpeed;
-				if (movoToPoint.y > y) {
-					xSpeed = downSpeed * xDec / yDec;
-				} else {
-					xSpeed = upSpeed * xDec / yDec;
-				}
+				speedVector = -Float.MAX_VALUE;
 			}
-		}
-		if (movoToPoint.x - x >= 0) {
-			if (movoToPoint.x - x >= xSpeed)
-				x += xSpeed;
-			else
-				x = movoToPoint.x;
-		} else {
-			if (x - xSpeed > movoToPoint.x)
-				x -= xSpeed;
-			else
-				x = movoToPoint.x;
-		}
-
-		if (movoToPoint.y - y >= 0) {
-			if (y + upSpeed >= movoToPoint.y)
-				y = movoToPoint.y;
-			else
-				y += upSpeed;
-		} else {
-			if (y - upSpeed <= movoToPoint.y)
-				y = movoToPoint.y;
-			else
-				y -= upSpeed;
+			stillAdd = true;
 		}
 	}
 
+	/**
+	 * private void doMove() { if (!hasBalloon) { y += downSpeed; return; } if
+	 * (vectorPoint.x != x && vectorPoint.y == y) { if (xSpeed <= 0) { xSpeed =
+	 * 0; } else { xSpeed += 1; } } else if (vectorPoint.x == x && vectorPoint.y
+	 * != y) { xSpeed = 0; } else { float xDec = Math.abs(vectorPoint.x - x);
+	 * float yDec = Math.abs(vectorPoint.y - y); if (xDec / yDec >= 3) { if
+	 * (xSpeed <= 0) { xSpeed = 0; } else { xSpeed += 1; } upSpeed = downSpeed =
+	 * xSpeed * yDec / xDec; } else { upSpeed = UpSpeed; downSpeed = DownSpeed;
+	 * 
+	 * if (vectorPoint.y > y) { xSpeed = downSpeed * xDec / yDec; } else {
+	 * xSpeed = upSpeed * xDec / yDec; } } } if (vectorPoint.x - x >= 0) { if
+	 * (vectorPoint.x - x >= xSpeed) x += xSpeed; else x = vectorPoint.x; } else
+	 * { if (x - xSpeed > vectorPoint.x) x -= xSpeed; else x = vectorPoint.x; }
+	 * 
+	 * if (vectorPoint.y - y >= 0) { if (y + upSpeed >= vectorPoint.y) y =
+	 * vectorPoint.y; else y += upSpeed; } else { if (y - upSpeed <=
+	 * vectorPoint.y) y = vectorPoint.y; else y -= upSpeed; } }
+	 */
 	private void stillAlive() {
 		if (y >= bottomHeight) {
 			y = bottomHeight;
 			if (moving) {
-				if (movoToPoint.x - x > width / 2) {
+				if (vectorPoint.x - x > width / 2) {
 					x += width / 2;
-				} else if (x - movoToPoint.x > width / 2) {
+				} else if (x - vectorPoint.x > width / 2) {
 					x -= width / 2;
 				}
 			}
-			moving = false;
+			speedX = 0;
+			speedY = 0;
 		}
-		if (y < height / 2) {
-			y = height;
+		if (y <= topHeight / 2) {
+			y = topHeight;
 			if (moving) {
-				if (movoToPoint.x - x > width / 2) {
+				if (vectorPoint.x - x > width / 2) {
 					x += width / 2;
-				} else if (x - movoToPoint.x > width / 2) {
+				} else if (x - vectorPoint.x > width / 2) {
 					x -= width / 2;
 				}
 			}
-			moving = false;
+			speedX = -speedX;
 		}
 		if (x < width / 2) {
 			x = width;
-			if (y < bottomHeight - height / 2)
-				y += height / 2;
+			if (y < bottomHeight - topHeight / 2)
+				y += topHeight / 2;
 			else
 				y = bottomHeight;
-			moving = false;
+			speedX = -speedX;
 		}
 		if (x > maxX - width / 2) {
 			x = maxX - width;
-			if (y < bottomHeight - height / 2)
-				y += height / 2;
+			if (y < bottomHeight - topHeight / 2)
+				y += topHeight / 2;
 			else
 				y = bottomHeight;
-			moving = false;
+			speedX = -speedX;
 		}
 
 	}
@@ -260,5 +261,59 @@ public class Player extends Thread {
 		this.x = maxX / 4;
 		this.y = topHeight;
 		mResetFlag = false;
+	}
+
+	private void speedOp(boolean moveing) {
+		if (moveing) {
+			if (!stillAdd) {
+				return;
+			}
+			if (vectorPoint.x > x) {
+				speedX += 1;
+			} else if (vectorPoint.x < x) {
+				speedX -= 1;
+			}
+			if (vectorPoint.y > y) {
+				speedY = DownSpeed;
+			} else {
+				speedY -= 0.5;
+			}
+			if (y <= topHeight) {
+				speedY = -speedY;
+			}
+			if (speedVector != 0 && vectorPoint.y != y) {
+				speedX = speedY / speedVector;
+				if (Math.abs(speedVector) < 0.3) {
+					if (speedX >= XSpeed) {
+						speedX = XSpeed;
+						speedY = speedX * speedVector;
+					} else if (speedX <= -XSpeed) {
+						speedX = -XSpeed;
+						speedY = speedX * speedVector;
+					}
+				}
+			}
+			if (vectorPoint.y == y) {
+				speedY = 0;
+			}
+			if (vectorPoint.x == x) {
+				speedX = 0;
+			}
+		} else {
+			speedX -= 0.01 * speedX;
+			if (y >= bottomHeight) {
+				speedY = 0;
+			} else {
+				speedY = DownSpeed;
+			}
+			if (Math.abs(speedX) == 0) {
+				speedX = 0;
+			}
+		}
+		if (speedY <= -UpSpeed) {
+			speedY = -UpSpeed;
+		} else if (speedY >= DownSpeed) {
+			speedY = DownSpeed;
+		}
 	}
 }

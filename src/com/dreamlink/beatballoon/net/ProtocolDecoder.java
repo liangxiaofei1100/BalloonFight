@@ -86,7 +86,7 @@ public class ProtocolDecoder {
 
 		if (mCallback != null) {
 			mCallback.onPlayerTouch(touchEventData.getX(),
-					touchEventData.getY());
+					touchEventData.getY(), touchEventData.ismTouched());
 		}
 	}
 
@@ -136,7 +136,7 @@ public class ProtocolDecoder {
 
 		void onSearchRequest(User sendUser);
 
-		void onPlayerTouch(float x, float y);
+		void onPlayerTouch(float x, float y, boolean touched);
 
 		void onSyncSore(int scoreOfPlayer1, int scoreOfPlayer2);
 
