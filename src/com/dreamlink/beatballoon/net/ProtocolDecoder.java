@@ -3,7 +3,7 @@ package com.dreamlink.beatballoon.net;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import com.dreamlink.aidl.User;
+import com.dreamlink.communication.aidl.User;
 import com.dreamlink.util.ArrayUtil;
 import com.dreamlink.util.Log;
 

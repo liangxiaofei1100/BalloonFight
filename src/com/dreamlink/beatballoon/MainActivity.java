@@ -9,24 +9,17 @@ import java.util.List;
 import java.util.Vector;
 
 import android.app.Activity;
-import android.content.ComponentName;
 import android.content.Context;
-import android.content.Intent;
-import android.content.ServiceConnection;
-import android.content.pm.ActivityInfo;
-import android.content.pm.PackageManager;
-import android.content.pm.PackageManager.NameNotFoundException;
-import android.graphics.BitmapFactory;
 import android.os.Handler;
-import android.os.IBinder;
 import android.os.Message;
-import android.os.RemoteException;
 import android.view.MotionEvent;
 import android.widget.Toast;
 
-import com.dreamlink.aidl.Communication;
-import com.dreamlink.aidl.OnCommunicationListenerExternal;
-import com.dreamlink.aidl.User;
+import com.dreamlink.communication.aidl.User;
+import com.dreamlink.communication.lib.CommunicationManager;
+import com.dreamlink.communication.lib.CommunicationManager.OnCommunicationListener;
+import com.dreamlink.communication.lib.CommunicationManager.OnConnectionChangeListener;
+import com.dreamlink.communication.lib.util.AppUtil;
 import com.dreamlink.beatballoon.GameView.GameViewCallback;
 import com.dreamlink.beatballoon.ScoreView.OnGameOverListener;
 import com.dreamlink.beatballoon.ScoreView.OnSoreChangedListener;
@@ -39,7 +32,8 @@ import com.dreamlink.role.Player;
 import com.dreamlink.util.Log;
 
 public class MainActivity extends Activity implements ProtocolDecoder.Callback,
-		GameViewCallback, OnSoreChangedListener, OnGameOverListener {
+		GameViewCallback, OnSoreChangedListener, OnGameOverListener,
+		OnConnectionChangeListener, OnCommunicationListener {
 	private static final String TAG = "MainActivity";
 	public int height, width;
 	public static final int refreshSpeed = 30;
@@ -120,8 +114,10 @@ public class MainActivity extends Activity implements ProtocolDecoder.Callback,
 
 		mProtocolDecoder = new ProtocolDecoder(this);
 
-		mAppId = getAppID();
-		boolean result = connectCommunicationService();
+		mAppId = AppUtil.getAppID(this);
+		mCommunicationManager = new CommunicationManager(mContext);
+		boolean result = mCommunicationManager.connectCommunicatonService(this,
+				this, mAppId);
 		if (result) {
 			Log.d(TAG, "connectCommunicationService success.");
 		} else {
@@ -133,14 +129,21 @@ public class MainActivity extends Activity implements ProtocolDecoder.Callback,
 
 	@Override
 	protected void onResume() {
-		// TODO Auto-generated method stub
 		super.onResume();
 		startGame();
 	}
 
+	private void quitGame() {
+		Log.d(TAG, "quitGame");
+		// Send message to competitor.
+		byte[] data = ProtocolEncoder.encodeQuitGame();
+		sendMessageToAllCompetitor(data);
+	}
+
 	@Override
 	protected void onDestroy() {
-		disconnectService();
+		quitGame();
+		mCommunicationManager.disconnectCommunicationService();
 		super.onDestroy();
 	}
 
@@ -194,10 +197,34 @@ public class MainActivity extends Activity implements ProtocolDecoder.Callback,
 	}
 
 	// Communication Service begin
-	/**
-	 * Connected to communication service.
-	 */
-	private void onCommunicationReady() {
+	private int mAppId;
+	private CommunicationManager mCommunicationManager;
+
+	private void sendMessageToSingleCompetitor(byte[] data, User receiver) {
+		mCommunicationManager.sendMessage(data, receiver);
+	}
+
+	private void sendMessageToAllCompetitor(byte[] data) {
+		mCommunicationManager.sendMessageToAll(data);
+	}
+
+	@Override
+	public void onReceiveMessage(byte[] msg, User sendUser) {
+		handleMessage(msg, sendUser);
+	}
+
+	@Override
+	public void onUserConnected(User user) {
+		Log.d(TAG, "onUserConnected() " + user);
+	}
+
+	@Override
+	public void onUserDisconnected(User user) {
+		Log.d(TAG, "onUserDisconnected() " + user);
+	}
+
+	@Override
+	public void onCommunicationConnected() {
 		if (!checkCommunicationConnection()) {
 			Toast.makeText(mContext, "无网络连接，请先建立连接后再启动游戏。", Toast.LENGTH_LONG)
 					.show();
@@ -209,7 +236,7 @@ public class MainActivity extends Activity implements ProtocolDecoder.Callback,
 		byte[] joinData = ProtocolEncoder.encodeJoinGame();
 		sendMessageToAllCompetitor(joinData);
 
-		mLocalPlayer = getLocalUser();
+		mLocalPlayer = mCommunicationManager.getLocalUser();
 		if (mLocalPlayer != null) {
 			addPlayer(mLocalPlayer);
 		} else {
@@ -217,138 +244,20 @@ public class MainActivity extends Activity implements ProtocolDecoder.Callback,
 		}
 	}
 
-	private final String INTENT_STRING = "com.dreamlink.communication.ComService";
-	private int mAppId;
-	private Communication mCommunication;
-	private ServiceConnection mServiceConnection;
-
-	private int getAppID() {
-		try {
-			ActivityInfo info = this.getPackageManager().getActivityInfo(
-					getComponentName(), PackageManager.GET_META_DATA);
-			return info.metaData.getInt("APPID");
-		} catch (NameNotFoundException e) {
-			e.printStackTrace();
-			Log.e(TAG, "Get App ID error!");
-		}
-		return 0;
+	@Override
+	public void onCommunicationDisconnected() {
+		Log.d(TAG, "onCommunicationDisconnected");
 	}
-
-	private void sendMessageToSingleCompetitor(byte[] data, User receiver) {
-		sendMessage(data, receiver);
-	}
-
-	private void sendMessageToAllCompetitor(byte[] data) {
-		sendMessage(data, null);
-	}
-
-	private void sendMessage(byte[] data, User receiver) {
-		if (mCommunication == null) {
-			Log.e(TAG, "sendMessageToCompetitor fail, communication is null");
-			return;
-		}
-		try {
-			mCommunication.sendMessage(data, mAppId, null);
-		} catch (RemoteException e) {
-			e.printStackTrace();
-		} catch (Exception e) {
-			// TODO Service is connected, but communication is not connected.
-			Log.e(TAG, "sendMessageToCompetitor fail: " + e);
-		}
-	}
-
-	private boolean connectCommunicationService() {
-		mServiceConnection = new ServiceConnection() {
-
-			public void onServiceDisconnected(ComponentName name) {
-				try {
-					mCommunication
-							.unRegistListenr(mCommunicationListenerExternal);
-				} catch (RemoteException e) {
-					e.printStackTrace();
-				}
-
-			}
-
-			public void onServiceConnected(ComponentName name, IBinder service) {
-				mCommunication = Communication.Stub.asInterface(service);
-				try {
-					mCommunication.registListenr(
-							mCommunicationListenerExternal, mAppId);
-					onCommunicationReady();
-				} catch (RemoteException e) {
-					e.printStackTrace();
-				}
-			}
-
-		};
-		Intent communicateIntent = new Intent(INTENT_STRING);
-		return bindService(communicateIntent, mServiceConnection,
-				Context.BIND_AUTO_CREATE);
-	}
-
-	private void disconnectService() {
-		if (mCommunication != null) {
-			try {
-				mCommunication.unRegistListenr(mCommunicationListenerExternal);
-			} catch (RemoteException e) {
-				e.printStackTrace();
-			}
-		}
-		if (mServiceConnection != null) {
-			unbindService(mServiceConnection);
-		}
-	}
-
-	private OnCommunicationListenerExternal mCommunicationListenerExternal = new OnCommunicationListenerExternal.Stub() {
-
-		@Override
-		public void onUserDisconnected(User user) throws RemoteException {
-
-		}
-
-		@Override
-		public void onUserConnected(User user) throws RemoteException {
-
-		}
-
-		@Override
-		public void onReceiveMessage(byte[] msg, User sendUser)
-				throws RemoteException {
-			handleMessage(msg, sendUser);
-		}
-	};
 
 	private boolean checkCommunicationConnection() {
 		boolean result = true;
-		if (mCommunication == null) {
-			result = false;
+		List<User> users = mCommunicationManager.getAllUser();
+		if (users != null && users.size() > 1) {
+			result = true;
 		} else {
-			List<User> users = null;
-			try {
-				users = mCommunication.getAllUser();
-			} catch (RemoteException e) {
-				e.printStackTrace();
-			}
-			if (users != null && users.size() > 1) {
-				result = true;
-			} else {
-				result = false;
-			}
+			result = false;
 		}
 		return result;
-	}
-
-	private User getLocalUser() {
-		User user = null;
-		if (mCommunication != null) {
-			try {
-				user = mCommunication.getLocalUser();
-			} catch (RemoteException e) {
-				e.printStackTrace();
-			}
-		}
-		return user;
 	}
 
 	// Communication Service end
