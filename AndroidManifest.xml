@@ -30,7 +30,7 @@
             </intent-filter>
 
             <meta-data
-                android:name="APPID"
+                android:name="app_id"
                 android:value="1002" />
         </activity>
     </application>
